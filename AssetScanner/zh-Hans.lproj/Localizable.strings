@@ -1,0 +1,99 @@
+/* AssetScanner 中文本地化 */
+
+/* ========== 通用 ========== */
+"language" = "语言";
+
+/* ========== 标签栏 ========== */
+"tab_scan" = "扫码";
+"tab_assets" = "资产";
+"tab_management" = "管理";
+"tab_history" = "记录";
+
+/* ========== 扫码页面 ========== */
+"scan_title" = "资产扫码";
+"scan_input_placeholder" = "输入条码";
+"scan_query" = "查询";
+"scan_import" = "导入资产表";
+"scan_hint" = "将条码对准框内";
+"scan_success" = "扫码成功";
+"scan_redirecting" = "正在跳转...";
+
+/* ========== 资产列表 ========== */
+"asset_list_title" = "资产列表";
+"asset_count" = "%d 件";
+"search_assets" = "搜索资产";
+"empty_assets_title" = "暂无资产数据";
+"empty_assets_hint" = "请先导入资产表";
+
+/* ========== 资产详情 ========== */
+"loading" = "加载中...";
+"check_in" = "入库";
+"check_out" = "出库";
+"operator" = "操作人";
+"note" = "备注";
+"confirm" = "确认";
+"cancel" = "取消";
+"check_in_confirm" = "确认入库 %@？";
+"check_out_section" = "操作信息";
+"estimated_return" = "预计归还时间";
+"confirm_check_out" = "确认出库";
+"check_out_title" = "出库";
+"recent_check_out" = "最近出库记录";
+"estimated_return_label" = "预计归还";
+"info_internal_code" = "内编号";
+"info_brand" = "品牌";
+"info_model" = "型号";
+"info_location" = "存放位置";
+"info_purchase_date" = "采购日期";
+"info_last_updated" = "最后更新";
+
+/* ========== 资产管理 ========== */
+"management_title" = "管理";
+"stat_file_sources" = "文件来源";
+"stat_total_assets" = "资产总数";
+"empty_management_title" = "暂无导入记录";
+"empty_management_hint" = "在扫码页面导入资产表后\n这里会显示文件来源";
+"source_assets_count" = "%d 件资产";
+
+/* ========== 操作记录 ========== */
+"history_title" = "操作记录";
+"delete" = "删除";
+"sync_reminder" = "同步提醒";
+"sync_complete" = "同步完成";
+"empty_history_title" = "暂无操作记录";
+"empty_history_hint" = "扫码操作后会自动记录";
+
+/* ========== 资产状态 ========== */
+"status_in_stock" = "在库";
+"status_checked_out" = "已出库";
+"status_maintenance" = "维修中";
+
+/* ========== 操作类型 ========== */
+"type_check_in" = "入库";
+"type_check_out" = "出库";
+
+/* ========== 提醒备注 ========== */
+"note_barcode" = "资产条码";
+"note_borrower" = "借用人";
+"note_checkout_time" = "出库时间";
+
+/* ========== 错误消息 ========== */
+"error_title" = "错误";
+"error_barcode_not_found" = "未找到条码: %@";
+"error_import_failed" = "导入失败: %@";
+"error_export_failed" = "导出失败: %@";
+"error_unsupported_format" = "不支持的文件格式: %@";
+"error_invalid_format" = "文件至少需要包含表头和一行数据";
+"error_xlsx_missing_shared_strings" = "XLSX 文件缺少 sharedStrings.xml";
+"error_xlsx_missing_sheet1" = "XLSX 文件缺少 sheet1.xml";
+"error_xlsx_parse_failed" = "无法解析 sheet1.xml";
+"error_invalid_zip" = "无效的 ZIP 文件";
+"error_decompress_failed" = "解压 XLSX 数据失败";
+"error_reminder_permission" = "需要提醒事项权限，请在设置中开启";
+"error_reminder_list_create" = "无法创建提醒列表";
+"error_sync_failed" = "同步失败: %@";
+"sync_success" = "已同步 %d 条记录";
+"sync_skip" = "，跳过 %d 条已存在";
+"sync_all_exist" = "所有记录已同步（%d 条已存在）";
+"sync_no_records" = "没有需要同步的记录";
+"current_user" = "当前用户";
