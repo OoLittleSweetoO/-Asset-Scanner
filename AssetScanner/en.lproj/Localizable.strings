@@ -1,0 +1,99 @@
+/* AssetScanner English Localization */
+
+/* ========== General ========== */
+"language" = "Language";
+
+/* ========== Tab Bar ========== */
+"tab_scan" = "SCAN";
+"tab_assets" = "ASSETS";
+"tab_management" = "MANAGE";
+"tab_history" = "HISTORY";
+
+/* ========== Scan View ========== */
+"scan_title" = "ASSET SCANNER";
+"scan_input_placeholder" = "ENTER BARCODE";
+"scan_query" = "SEARCH";
+"scan_import" = "IMPORT";
+"scan_hint" = "ALIGN BARCODE IN FRAME";
+"scan_success" = "SCAN SUCCESS";
+"scan_redirecting" = "NAVIGATING...";
+
+/* ========== Asset List ========== */
+"asset_list_title" = "ASSETS";
+"asset_count" = "%d ITEMS";
+"search_assets" = "SEARCH";
+"empty_assets_title" = "NO ASSETS";
+"empty_assets_hint" = "IMPORT ASSET LIST FIRST";
+
+/* ========== Asset Detail ========== */
+"loading" = "LOADING...";
+"check_in" = "CHECK IN";
+"check_out" = "CHECK OUT";
+"operator" = "OPERATOR";
+"note" = "NOTE";
+"confirm" = "CONFIRM";
+"cancel" = "CANCEL";
+"check_in_confirm" = "CHECK IN %@?";
+"check_out_section" = "OPERATION";
+"estimated_return" = "DUE DATE";
+"confirm_check_out" = "CONFIRM";
+"check_out_title" = "CHECK OUT";
+"recent_check_out" = "RECENT CHECK-OUTS";
+"estimated_return_label" = "DUE";
+"info_internal_code" = "INTERNAL ID";
+"info_brand" = "BRAND";
+"info_model" = "MODEL";
+"info_location" = "LOCATION";
+"info_purchase_date" = "PURCHASE DATE";
+"info_last_updated" = "LAST UPDATED";
+
+/* ========== Asset Management ========== */
+"management_title" = "MANAGE";
+"stat_file_sources" = "FILE SOURCES";
+"stat_total_assets" = "TOTAL ASSETS";
+"empty_management_title" = "NO IMPORTS";
+"empty_management_hint" = "IMPORT ASSET FILES FROM SCAN PAGE";
+"source_assets_count" = "%d ASSETS";
+
+/* ========== History ========== */
+"history_title" = "HISTORY";
+"delete" = "DELETE";
+"sync_reminder" = "SYNC";
+"sync_complete" = "SYNCED";
+"empty_history_title" = "NO RECORDS";
+"empty_history_hint" = "RECORDS APPEAR AFTER SCANNING";
+
+/* ========== Asset Status ========== */
+"status_in_stock" = "IN STOCK";
+"status_checked_out" = "CHECKED OUT";
+"status_maintenance" = "MAINTENANCE";
+
+/* ========== Operation Type ========== */
+"type_check_in" = "CHECK IN";
+"type_check_out" = "CHECK OUT";
+
+/* ========== Reminder Notes ========== */
+"note_barcode" = "Barcode";
+"note_borrower" = "Borrower";
+"note_checkout_time" = "Checkout Time";
+
+/* ========== Error Messages ========== */
+"error_title" = "ERROR";
+"error_barcode_not_found" = "BARCODE NOT FOUND: %@";
+"error_import_failed" = "IMPORT FAILED: %@";
+"error_export_failed" = "EXPORT FAILED: %@";
+"error_unsupported_format" = "UNSUPPORTED FORMAT: %@";
+"error_invalid_format" = "FILE MUST HAVE HEADER AND DATA ROWS";
+"error_xlsx_missing_shared_strings" = "XLSX MISSING sharedStrings.xml";
+"error_xlsx_missing_sheet1" = "XLSX MISSING sheet1.xml";
+"error_xlsx_parse_failed" = "FAILED TO PARSE sheet1.xml";
+"error_invalid_zip" = "INVALID ZIP";
+"error_decompress_failed" = "DECOMPRESS FAILED";
+"error_reminder_permission" = "REMINDER PERMISSION REQUIRED";
+"error_reminder_list_create" = "FAILED TO CREATE REMINDER LIST";
+"error_sync_failed" = "SYNC FAILED: %@";
+"sync_success" = "SYNCED %d RECORD(S)";
+"sync_skip" = ", SKIPPED %d EXISTING";
+"sync_all_exist" = "ALL SYNCED (%d EXISTING)";
+"sync_no_records" = "NO RECORDS TO SYNC";
+"current_user" = "CURRENT USER";
