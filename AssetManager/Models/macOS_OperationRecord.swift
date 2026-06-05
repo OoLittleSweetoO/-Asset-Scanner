@@ -37,11 +37,15 @@ struct macOS_OperationRecord: Codable, Identifiable {
 enum macOS_OperationType: String, Codable, CaseIterable {
     case checkIn = "入库"
     case checkOut = "出库"
+    case repair = "送修"
+    case scrap = "报废"
     
     var displayName: String {
         switch self {
         case .checkIn: return "入库"
         case .checkOut: return "出库"
+        case .repair: return "送修"
+        case .scrap: return "报废"
         }
     }
 }

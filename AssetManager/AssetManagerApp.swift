@@ -2,32 +2,53 @@ import SwiftUI
 
 @main
 struct AssetManagerApp: App {
-    @StateObject private var syncService = iCloudSyncService()
+    
     @StateObject private var assetVM = AssetViewModel()
     
     var body: some Scene {
         WindowGroup("资产管家") {
             MacMainView()
                 .environmentObject(assetVM)
-                .environmentObject(syncService)
-                .onAppear { syncService.syncFromICloud(to: &assetVM.assets, records: &assetVM.operationRecords, sources: &assetVM.sources) }
+                .onAppear { assetVM.syncService.syncFromICloud(to: &assetVM.assets, records: &assetVM.operationRecords, sources: &assetVM.sources) }
+        }
+        .commands {
+            CommandGroup(after: .saveItem) {
+                Divider()
+                Button("保存当前配置...") {
+                    assetVM.saveCurrentConfigurationToFile()
+                }
+                .keyboardShortcut("s", modifiers: [.command, .option])
+
+                Button("读取配置...") {
+                    assetVM.loadConfigurationFromFile()
+                }
+                .keyboardShortcut("o", modifiers: [.command, .option])
+            }
+
+            CommandGroup(after: .help) {
+                Divider()
+                Button("打开 AssetManager 使用说明") {
+                    HelpPageService.openAssetManagerHelpPage()
+                }
+                .keyboardShortcut("/", modifiers: [.command, .option])
+            }
         }
         #if DEBUG
         MenuBarExtra("资产管家", systemImage: "barcode") {
             VStack {
                 Text(assetVM.syncStatus).font(.caption)
                 
-                if let lastSync = syncService.lastSyncTime {
+                if let lastSync = assetVM.syncService.lastSyncTime {
                     Text("最后同步: \(lastSync, formatter: Self.dateFormatter)").font(.caption)
                 }
-                if let lastImport = syncService.lastImportTime {
+                if let lastImport = assetVM.syncService.lastImportTime {
                     Text("最后导入: \(lastImport, formatter: Self.dateFormatter)").font(.caption)
                 }
                 
                 Divider()
                 
                 Button("同步数据") {
-                    syncService.syncBidirectional(assets: &assetVM.assets, records: &assetVM.operationRecords, sources: &assetVM.sources)
+                    assetVM.syncService.syncBidirectional(assets: &assetVM.assets, records: &assetVM.operationRecords, sources: &assetVM.sources)
                 }
                 
                 Button("从 iCloud 导入 CSV") {

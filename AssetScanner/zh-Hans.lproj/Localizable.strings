@@ -66,11 +66,14 @@
 /* ========== 资产状态 ========== */
 "status_in_stock" = "在库";
 "status_checked_out" = "已出库";
-"status_maintenance" = "维修中";
+"status_maintenance" = "送修";
+"status_scrapped" = "待报废";
 
 /* ========== 操作类型 ========== */
 "type_check_in" = "入库";
 "type_check_out" = "出库";
+"type_repair" = "送修";
+"type_scrap" = "报废";
 
 /* ========== 提醒备注 ========== */
 "note_barcode" = "资产条码";

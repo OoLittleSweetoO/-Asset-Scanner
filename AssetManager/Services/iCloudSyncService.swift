@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import SwiftUI
 
 /// iCloud 文件同步服务 - 基于文件系统的同步方案
 @MainActor
@@ -10,12 +11,8 @@ class iCloudSyncService: ObservableObject {
     @Published var syncError: String?
     @Published var syncStatus: String = "未同步"
     
-    /// 同步目录路径
-    @Published var syncPath: String {
-        didSet {
-            UserDefaults.standard.set(syncPath, forKey: "AssetManagerSyncPath")
-        }
-    }
+    @AppStorage("syncPath") private var storedSyncPath: String = ""
+    @Published var syncPath: String = ""
     
     private let assetsFileName = "assets.json"
     private let recordsFileName = "records.json"
@@ -24,31 +21,22 @@ class iCloudSyncService: ObservableObject {
     private let metaFileName = "meta.json"
     
     private let legacyUserDefaultsKey = "iCloud.com.user.AssetsScanner"
+    private let syncBookmarkKey = "syncPathBookmark"
+    private var securityScopedURL: URL?
     
     init() {
-        print("🔄 [iCloudSyncService.init] 初始化同步服务...")
-        
-        // 从 UserDefaults 读取自定义同步路径，默认使用 ~/Documents/AssetManagerFile
-        // 用户可通过 NSOpenPanel 选择任意目录（包括 iCloud Drive）
-        let defaultPath = "\(NSHomeDirectory())/Documents/AssetManagerFile"
-        self.syncPath = UserDefaults.standard.string(forKey: "AssetManagerSyncPath") ?? defaultPath
-        print("📂 [iCloudSyncService.init] 初始同步路径: \(syncPath)")
-        
-        // 检查目录是否可访问，如果不可用则尝试创建
-        if !checkPathAccessible() {
-            print("⚠️ [iCloudSyncService.init] 同步目录不可用，尝试创建...")
-            if setSyncPath(defaultPath) {
-                syncPath = defaultPath
-                UserDefaults.standard.set(defaultPath, forKey: "AssetManagerSyncPath")
-                print("✅ [iCloudSyncService.init] 已切换到默认目录: \(defaultPath)")
-            } else {
-                isICloudAvailable = false
-                syncStatus = "❌ 目录不可用"
-                print("❌ [iCloudSyncService.init] 默认目录也无法创建")
-            }
+        if !restoreSecurityScopedURLFromBookmark() {
+            syncPath = storedSyncPath
         }
-        
-        // 确保 isICloudAvailable 状态正确
+
+        if syncPath.isEmpty {
+            let defaultPath = "\(NSHomeDirectory())/Documents/AssetManagerFile"
+            syncPath = defaultPath
+            storedSyncPath = defaultPath
+        }
+
+        _ = checkPathAccessible()
+
         if isICloudAvailable {
             print("✅ [iCloudSyncService.init] 同步目录可用: \(syncPath)")
             loadMetadata()
@@ -67,10 +55,11 @@ class iCloudSyncService: ObservableObject {
     }
     
     // MARK: - 路径管理
-    
+
     /// 检查同步路径是否可访问
     private func checkPathAccessible() -> Bool {
-        let url = URL(fileURLWithPath: syncPath)
+        isICloudAvailable = false
+        let url = currentDirectoryURL()
         print("🔍 [checkPathAccessible] 检查路径: \(syncPath)")
         
         // 如果目录不存在，尝试创建
@@ -114,29 +103,67 @@ class iCloudSyncService: ObservableObject {
     }
     
     /// 设置新的同步路径
-    func setSyncPath(_ newPath: String) -> Bool {
-        let url = URL(fileURLWithPath: newPath)
-        
-        // 检查路径是否存在或可创建
-        if !FileManager.default.fileExists(atPath: newPath) {
-            do {
-                try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
-            } catch {
-                syncError = "创建目录失败: \(error.localizedDescription)"
-                return false
+    func setSyncPath(_ newPath: String) {
+        stopAccessingSecurityScopedURL()
+        UserDefaults.standard.removeObject(forKey: syncBookmarkKey)
+        syncPath = newPath
+        storedSyncPath = newPath
+        _ = checkPathAccessible()
+        if isICloudAvailable {
+            syncError = nil
+        }
+        print("✅ 路径更新: \(newPath)")
+    }
+
+    func setSyncDirectoryURL(_ url: URL) {
+        do {
+            let bookmarkData = try url.bookmarkData(
+                options: [.withSecurityScope],
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+            UserDefaults.standard.set(bookmarkData, forKey: syncBookmarkKey)
+
+            stopAccessingSecurityScopedURL()
+            let started = url.startAccessingSecurityScopedResource()
+            securityScopedURL = started ? url : nil
+
+            syncPath = url.path
+            storedSyncPath = url.path
+            _ = checkPathAccessible()
+            if isICloudAvailable {
+                syncError = nil
+            } else if !started {
+                syncError = "无法获取目录访问权限"
+            }
+
+            print("✅ 已保存同步目录书签: \(url.path), started=\(started)")
+        } catch {
+            syncError = "保存同步目录失败: \(error.localizedDescription)"
+            syncStatus = "❌ 目录不可用"
+            print("❌ 保存同步目录书签失败: \(error.localizedDescription)")
+        }
+    }
+
+    func exportBookmarkData() -> Data? {
+        UserDefaults.standard.data(forKey: syncBookmarkKey)
+    }
+
+    @discardableResult
+    func restoreSyncDirectory(path: String, bookmarkData: Data?) -> Bool {
+        if let bookmarkData {
+            UserDefaults.standard.set(bookmarkData, forKey: syncBookmarkKey)
+            if restoreSecurityScopedURLFromBookmark() {
+                _ = checkPathAccessible()
+                if isICloudAvailable {
+                    syncError = nil
+                }
+                return true
             }
         }
-        
-        // 检查是否可写
-        if !FileManager.default.isWritableFile(atPath: newPath) {
-            syncError = "目录不可写"
-            return false
-        }
-        
-        syncPath = newPath
-        isICloudAvailable = true
-        syncError = nil
-        return true
+
+        setSyncPath(path)
+        return isICloudAvailable
     }
     
     // MARK: - 数据同步
@@ -218,7 +245,7 @@ class iCloudSyncService: ObservableObject {
         }
         
         // 确保目录存在且可写
-        let dirURL = URL(fileURLWithPath: syncPath)
+        let dirURL = currentDirectoryURL()
         if !FileManager.default.fileExists(atPath: syncPath) {
             do {
                 try FileManager.default.createDirectory(at: dirURL, withIntermediateDirectories: true, attributes: nil)
@@ -398,7 +425,57 @@ class iCloudSyncService: ObservableObject {
     }
     
     private func fileURL(for fileName: String) -> URL {
-        URL(fileURLWithPath: syncPath).appendingPathComponent(fileName)
+        currentDirectoryURL().appendingPathComponent(fileName)
+    }
+
+    private func currentDirectoryURL() -> URL {
+        securityScopedURL ?? URL(fileURLWithPath: syncPath)
+    }
+
+    private func restoreSecurityScopedURLFromBookmark() -> Bool {
+        guard let bookmarkData = UserDefaults.standard.data(forKey: syncBookmarkKey) else {
+            return false
+        }
+
+        do {
+            var isStale = false
+            let resolvedURL = try URL(
+                resolvingBookmarkData: bookmarkData,
+                options: [.withSecurityScope],
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            )
+
+            let started = resolvedURL.startAccessingSecurityScopedResource()
+            securityScopedURL = started ? resolvedURL : nil
+            syncPath = resolvedURL.path
+            storedSyncPath = resolvedURL.path
+
+            if isStale {
+                try saveBookmark(for: resolvedURL)
+            }
+
+            print("✅ 已恢复同步目录书签: \(resolvedURL.path), started=\(started), stale=\(isStale)")
+            return started
+        } catch {
+            UserDefaults.standard.removeObject(forKey: syncBookmarkKey)
+            print("❌ 恢复同步目录书签失败: \(error.localizedDescription)")
+            return false
+        }
+    }
+
+    private func saveBookmark(for url: URL) throws {
+        let bookmarkData = try url.bookmarkData(
+            options: [.withSecurityScope],
+            includingResourceValuesForKeys: nil,
+            relativeTo: nil
+        )
+        UserDefaults.standard.set(bookmarkData, forKey: syncBookmarkKey)
+    }
+
+    private func stopAccessingSecurityScopedURL() {
+        securityScopedURL?.stopAccessingSecurityScopedResource()
+        securityScopedURL = nil
     }
     
     private func loadMetadata() {

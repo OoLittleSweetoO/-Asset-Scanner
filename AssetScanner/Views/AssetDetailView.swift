@@ -14,6 +14,7 @@ struct AssetDetailView: View {
     
     @State private var showCheckIn = false
     @State private var showCheckOut = false
+    @State private var showDeleteConfirmation = false
     @State private var operatorName = L("current_user")
     @State private var note = ""
     @State private var estimatedReturnDate = Date()
@@ -59,6 +60,15 @@ struct AssetDetailView: View {
                 }
                 .background(Color(.systemGroupedBackground))
                 .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                    }
+                }
                 .alert(L("check_in"), isPresented: $showCheckIn) {
                     TextField(L("operator"), text: $operatorName)
                     TextField(L("note"), text: $note)
@@ -71,6 +81,15 @@ struct AssetDetailView: View {
                     Button(L("cancel"), role: .cancel) {}
                 } message: {
                     Text(String(format: L("check_in_confirm"), asset.assetName))
+                }
+                .confirmationDialog("删除这个设备条目？", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+                    Button("删除设备", role: .destructive) {
+                        viewModel.deleteAsset(asset)
+                        dismiss()
+                    }
+                    Button(L("cancel"), role: .cancel) {}
+                } message: {
+                    Text("删除后会同时清理对应的历史记录与来源关联，无法撤销。")
                 }
                 .sheet(isPresented: $showCheckOut) {
                     NavigationStack {
@@ -86,7 +105,7 @@ struct AssetDetailView: View {
                                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                         refreshAsset()
                                     }
-                                    dismiss()
+                                    showCheckOut = false
                                 }
                                 .foregroundColor(.orange)
                             }
@@ -96,7 +115,7 @@ struct AssetDetailView: View {
                         .toolbar {
                             ToolbarItem(placement: .cancellationAction) {
                                 Button(L("cancel")) {
-                                    dismiss()
+                                    showCheckOut = false
                                 }
                             }
                         }
@@ -349,6 +368,32 @@ struct AssetDetailView: View {
             }
             .disabled(asset.status != .inStock)
             .opacity(asset.status != .inStock ? 0.4 : 1)
+
+            Button(action: {
+                viewModel.markForMaintenance(asset: asset, operator: operatorName, note: note.isEmpty ? nil : note)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    refreshAsset()
+                }
+            }) {
+                HStack(spacing: 8) {
+                    Image(systemName: "wrench.and.screwdriver.fill")
+                    Text(L("status_maintenance"))
+                        .fontWeight(.semibold)
+                }
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    LinearGradient(
+                        colors: [Color(red: 0.9, green: 0.25, blue: 0.3), Color(red: 0.8, green: 0.2, blue: 0.25)],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(12)
+            }
+            .disabled(asset.status == .maintenance)
+            .opacity(asset.status == .maintenance ? 0.4 : 1)
         }
         .padding(.horizontal, 16)
         .padding(.top, 20)

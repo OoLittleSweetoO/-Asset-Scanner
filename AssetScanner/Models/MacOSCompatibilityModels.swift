@@ -6,12 +6,35 @@ import Foundation
 enum MacOSAssetStatus: String, Codable {
     case inStock = "在库"
     case checkedOut = "已出库"
-    case maintenance = "维修中"
+    case maintenance = "送修"
+    case scrapped = "待报废"
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self = Self.fromStoredValue(try container.decode(String.self))
+    }
+
+    static func fromStoredValue(_ rawValue: String) -> Self {
+        switch rawValue {
+        case MacOSAssetStatus.inStock.rawValue:
+            return .inStock
+        case MacOSAssetStatus.checkedOut.rawValue:
+            return .checkedOut
+        case "维修中", MacOSAssetStatus.maintenance.rawValue:
+            return .maintenance
+        case MacOSAssetStatus.scrapped.rawValue:
+            return .scrapped
+        default:
+            return .inStock
+        }
+    }
 }
 
 enum MacOSOperationType: String, Codable {
     case checkIn = "入库"
     case checkOut = "出库"
+    case repair = "送修"
+    case scrap = "报废"
 }
 
 // MARK: - macOS Asset 模型
@@ -52,7 +75,7 @@ struct MacOSAsset: Codable {
         
         // 状态可能是中文字符串
         let statusStr = try container.decodeIfPresent(String.self, forKey: .status) ?? "在库"
-        status = MacOSAssetStatus(rawValue: statusStr) ?? .inStock
+        status = MacOSAssetStatus.fromStoredValue(statusStr)
         
         internalCode = try container.decodeIfPresent(String.self, forKey: .internalCode) ?? ""
         location = try container.decodeIfPresent(String.self, forKey: .location) ?? ""

@@ -4,11 +4,15 @@ import Foundation
 enum OperationType: String, Codable, CaseIterable {
     case checkIn = "入库"
     case checkOut = "出库"
+    case repair = "送修"
+    case scrap = "报废"
 
     var displayName: String {
         switch self {
         case .checkIn: return L("type_check_in")
         case .checkOut: return L("type_check_out")
+        case .repair: return L("type_repair")
+        case .scrap: return L("type_scrap")
         }
     }
 }

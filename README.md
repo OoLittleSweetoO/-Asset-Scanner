@@ -104,6 +104,17 @@ AssetScanner/
 
 ---
 
+## 🎨 UI 约定（macOS）
+
+后续优化 macOS 端界面时，默认遵循以下约定，保持整体一致性（当前已在 `CheckOutSheetView` 与 `SyncSettingsView` 体现）。
+
+- 弹窗结构：`Header`（图标+标题+副标题）+ `ScrollView` 内容区 + 底部 `Action Bar`（取消/主按钮）。
+- 主次按钮：主操作用 `.borderedProminent` + `tint(AppTheme.xxx)`；取消按钮绑定 `.cancelAction`；主按钮绑定 `.defaultAction`。
+- 卡片分组：用 `RoundedRectangle(cornerRadius: 16)` + `Color(NSColor.controlBackgroundColor)`，轻阴影；卡片内间距优先 `16~18`。
+- 字段布局：标签在上、输入在下（减少表单式左右对齐的“松散感”）；`TextField` 用 `.roundedBorder`。
+- 多行备注：`TextEditor` 关闭默认背景并自绘 `textBackgroundColor` + 细描边，保证观感与可读性。
+- 信息展示：路径/标识符使用等宽字体（monospaced），并提供可读的预览块（支持换行/截断）。
+
 ## 🚀 使用方法
 
 ### 1. 准备资产表

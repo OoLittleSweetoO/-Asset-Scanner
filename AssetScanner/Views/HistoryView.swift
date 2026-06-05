@@ -190,6 +190,7 @@ struct RecordRowView: View {
         switch record.type {
         case .checkIn: return "arrow.down.circle.fill"
         case .checkOut: return "arrow.up.circle.fill"
+        case .repair: return "wrench.and.screwdriver.fill"
         }
     }
     
@@ -197,6 +198,7 @@ struct RecordRowView: View {
         switch record.type {
         case .checkIn: return Color(red: 0.2, green: 0.7, blue: 0.4)
         case .checkOut: return Color(red: 1.0, green: 0.55, blue: 0.0)
+        case .repair: return Color(red: 0.9, green: 0.25, blue: 0.3)
         }
     }
     

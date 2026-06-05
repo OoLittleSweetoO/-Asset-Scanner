@@ -1,8 +1,13 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// 资产管理视图 — 显示所有导入的文件来源，支持删除和管理
 struct AssetManagementView: View {
     @EnvironmentObject var viewModel: AssetViewModel
+
+    private var checkedOutAssetCount: Int {
+        viewModel.assets.filter { $0.status == .checkedOut }.count
+    }
     
     var body: some View {
         NavigationStack {
@@ -67,7 +72,7 @@ struct AssetManagementView: View {
                 
                 statItem(
                     icon: "arrow.up.circle.fill",
-                    value: "\(viewModel.operationRecords.filter { $0.type == .checkOut }.count)",
+                    value: "\(checkedOutAssetCount)",
                     label: "出库数量",
                     color: Color.orange
                 )
@@ -127,6 +132,7 @@ struct AssetManagementView: View {
 
 struct SyncSectionView: View {
     @EnvironmentObject var viewModel: AssetViewModel
+    @State private var showFeishuConfigImporter = false
     
     var body: some View {
         VStack(spacing: 16) {
@@ -244,6 +250,27 @@ struct SyncSectionView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(viewModel.isSyncInProgress || viewModel.selectedFolderURL == nil)
+
+                Button {
+                    showFeishuConfigImporter = true
+                } label: {
+                    HStack {
+                        Image(systemName: "link.badge.plus")
+                            .font(.title3)
+                        Text("导入 AssetManager 配置")
+                            .font(.headline)
+                        Spacer()
+                        if viewModel.hasFeishuConfig {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                        }
+                    }
+                    .padding()
+                    .background(Color.teal.opacity(0.1))
+                    .foregroundColor(.teal)
+                    .cornerRadius(12)
+                }
+                .buttonStyle(.plain)
             }
             
             // 状态显示
@@ -259,6 +286,23 @@ struct SyncSectionView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+
+            VStack(spacing: 10) {
+                HStack {
+                    Image(systemName: viewModel.hasFeishuConfig ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                        .foregroundColor(viewModel.hasFeishuConfig ? .green : .orange)
+                    Text(viewModel.feishuConfigStatus)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                }
+
+                if viewModel.hasFeishuConfig {
+                    configRow(title: "App ID", value: viewModel.importedFeishuAppID)
+                    configRow(title: "资产表 ID", value: viewModel.importedFeishuAssetTableID)
+                    configRow(title: "记录表 ID", value: viewModel.importedFeishuRecordTableID)
+                }
+            }
         }
         .padding()
         .background(
@@ -266,6 +310,33 @@ struct SyncSectionView: View {
                 .fill(Color(.systemBackground))
                 .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 3)
         )
+        .fileImporter(
+            isPresented: $showFeishuConfigImporter,
+            allowedContentTypes: [.json],
+            allowsMultipleSelection: false
+        ) { result in
+            switch result {
+            case .success(let urls):
+                guard let url = urls.first else { return }
+                Task { await viewModel.importAssetManagerFeishuConfig(from: url) }
+            case .failure(let error):
+                viewModel.errorMessage = "选择配置文件失败: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func configRow(title: String, value: String) -> some View {
+        HStack {
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Spacer()
+            Text(value.isEmpty ? "-" : value)
+                .font(.caption.monospaced())
+                .foregroundColor(.primary)
+                .lineLimit(1)
+        }
     }
 }
 

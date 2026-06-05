@@ -4,13 +4,35 @@ import Foundation
 enum AssetStatus: String, Codable, CaseIterable {
     case inStock = "在库"
     case checkedOut = "已出库"
-    case maintenance = "维修中"
+    case maintenance = "送修"
+    case scrapped = "待报废"
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        self = Self.fromStoredValue(try container.decode(String.self))
+    }
     
     var displayName: String {
         switch self {
         case .inStock: return L("status_in_stock")
         case .checkedOut: return L("status_checked_out")
         case .maintenance: return L("status_maintenance")
+        case .scrapped: return L("status_scrapped")
+        }
+    }
+
+    static func fromStoredValue(_ rawValue: String) -> Self {
+        switch rawValue {
+        case AssetStatus.inStock.rawValue:
+            return .inStock
+        case AssetStatus.checkedOut.rawValue:
+            return .checkedOut
+        case "维修中", AssetStatus.maintenance.rawValue:
+            return .maintenance
+        case AssetStatus.scrapped.rawValue:
+            return .scrapped
+        default:
+            return .inStock
         }
     }
 }
@@ -73,7 +95,7 @@ struct Asset: Codable, Identifiable, Hashable {
         
         let statusStr = try container.decodeIfPresent(String.self, forKey: .status) ?? 
                         container.decodeIfPresent(String.self, forKey: .chineseStatus) ?? "在库"
-        status = AssetStatus(rawValue: statusStr) ?? .inStock
+        status = AssetStatus.fromStoredValue(statusStr)
         
         internalCode = try container.decodeIfPresent(String.self, forKey: .internalCode) ?? 
                        container.decodeIfPresent(String.self, forKey: .chineseInternalCode) ?? ""
@@ -128,8 +150,8 @@ struct Asset: Codable, Identifiable, Hashable {
     // 从 Excel 行解析
     init?(fromDict: [String: String], sourceId: UUID? = nil) {
         // 支持多种列名映射
-        let barcode = fromDict["外编号"] ?? fromDict["条码"] ?? fromDict["barcode"] ?? ""
-        guard !barcode.isEmpty else { return nil }
+        let barcode = (fromDict["外编号"] ?? fromDict["条码"] ?? fromDict["barcode"] ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         
         self.id = barcode
         self.assetName = fromDict["名称"] ?? fromDict["资产名称"] ?? fromDict["name"] ?? ""
@@ -137,7 +159,7 @@ struct Asset: Codable, Identifiable, Hashable {
         self.brand = fromDict["品牌"] ?? fromDict["brand"] ?? ""
         
         let statusStr = fromDict["一级状态"] ?? fromDict["状态"] ?? fromDict["status"] ?? "在库"
-        self.status = AssetStatus(rawValue: statusStr) ?? .inStock
+        self.status = AssetStatus.fromStoredValue(statusStr)
         
         self.internalCode = fromDict["内编号"] ?? fromDict["internalCode"] ?? ""
         self.location = fromDict["一级存放地"] ?? fromDict["存放位置"] ?? fromDict["location"] ?? ""
@@ -149,5 +171,21 @@ struct Asset: Codable, Identifiable, Hashable {
         self.note = fromDict["备注"] ?? fromDict["note"]
         self.lastUpdated = Date()
         self.sourceId = sourceId
+    }
+
+    func withID(_ newID: String) -> Asset {
+        Asset(
+            id: newID,
+            assetName: assetName,
+            modelName: modelName,
+            brand: brand,
+            status: status,
+            internalCode: internalCode,
+            location: location,
+            purchaseDate: purchaseDate,
+            note: note,
+            lastUpdated: lastUpdated,
+            sourceId: sourceId
+        )
     }
 }

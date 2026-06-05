@@ -39,7 +39,7 @@ class macOS_StorageService {
         return (assets, records, sources)
     }
     
-func clearAllData() {
+    func clearAllData() {
         let userDefaults = UserDefaults.standard
         userDefaults.removeObject(forKey: "saved_assets")
         userDefaults.removeObject(forKey: "saved_records")
@@ -50,23 +50,22 @@ func clearAllData() {
     /// 从 CSV 内容导入资产
     func importFromCSV(csvContent: String) -> [macOS_Asset] {
         var newAssets: [macOS_Asset] = []
-        
-        let lines = csvContent.split(separator: "\n")
-        guard !lines.isEmpty else { return [] }
-        
-        let headers = lines[0].split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        
-        for i in 1..<lines.count {
-            let line = lines[i]
-            if line.isEmpty { continue }
-            
-            let values = line.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+
+        let rows = CSVService.parse(csvContent).filter { row in
+            !row.allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        }
+        guard !rows.isEmpty else { return [] }
+
+        let headers = rows[0].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+
+        for i in 1..<rows.count {
+            let values = rows[i]
             var row: [String: String] = [:]
-            
+
             for (j, header) in headers.enumerated() {
                 if j < values.count { row[header] = values[j] }
             }
-            
+
             print("✅ 解析行 \(i): \(row)")
             if let asset = createAsset(from: row) {
                 print("✅ 创建资产成功: \(asset.id) - \(asset.assetName)")
@@ -85,7 +84,7 @@ func clearAllData() {
         
         let statusStr = dict["一级状态"] ?? dict["状态"] ?? dict["status"] ?? "在库"
         print("📊 状态查找: statusStr='\(statusStr)'")
-        let status = macOS_AssetStatus(rawValue: statusStr) ?? .inStock
+        let status = macOS_AssetStatus.fromStoredValue(statusStr)
         print("✅ 状态解析: \(status.displayName)")
         
         let dateFormatter = DateFormatter()

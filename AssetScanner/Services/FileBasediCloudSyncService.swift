@@ -17,9 +17,11 @@ class FileBasediCloudSyncService: NSObject, ObservableObject {
     private let assetsFileName = "assets.json"
     private let recordsFileName = "records.json"
     private let sourcesFileName = "sources.json"
+    private let folderBookmarkKey = "selected_sync_folder_bookmark"
     
     override init() {
         super.init()
+        restoreSelectedFolder()
     }
     
     // MARK: - 选择文件夹
@@ -202,6 +204,44 @@ class FileBasediCloudSyncService: NSObject, ObservableObject {
         
         return (mergedAssets, mergedRecords, mergedSources)
     }
+
+    // MARK: - 文件夹记忆
+
+    private func saveSelectedFolder(_ url: URL) {
+        do {
+            let bookmark = try url.bookmarkData(
+                options: .minimalBookmark,
+                includingResourceValuesForKeys: nil,
+                relativeTo: nil
+            )
+            UserDefaults.standard.set(bookmark, forKey: folderBookmarkKey)
+        } catch {
+            print("⚠️ 同步文件夹记忆失败:", error)
+        }
+    }
+
+    private func restoreSelectedFolder() {
+        guard let bookmark = UserDefaults.standard.data(forKey: folderBookmarkKey) else { return }
+
+        do {
+            var isStale = false
+            let url = try URL(
+                resolvingBookmarkData: bookmark,
+                options: [],
+                relativeTo: nil,
+                bookmarkDataIsStale: &isStale
+            )
+            selectedFolderURL = url
+            syncStatus = isStale ? "同步文件夹需要重新选择" : "已选择: \(url.lastPathComponent)"
+
+            if isStale {
+                UserDefaults.standard.removeObject(forKey: folderBookmarkKey)
+            }
+        } catch {
+            UserDefaults.standard.removeObject(forKey: folderBookmarkKey)
+            syncStatus = "同步文件夹需要重新选择"
+        }
+    }
 }
 
 // MARK: - UIDocumentPickerDelegate
@@ -223,6 +263,7 @@ extension FileBasediCloudSyncService: UIDocumentPickerDelegate {
         DispatchQueue.main.async {
             self.selectedFolderURL = url
             self.syncStatus = "已选择: \(url.lastPathComponent)"
+            self.saveSelectedFolder(url)
             print("✅ selectedFolderURL 已设置:", self.selectedFolderURL?.path ?? "nil")
         }
     }

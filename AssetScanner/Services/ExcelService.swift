@@ -1,5 +1,6 @@
 import Foundation
 import Compression
+import CoreFoundation
 
 import UniformTypeIdentifiers
 
@@ -21,31 +22,55 @@ class ExcelService: ObservableObject {
     
     /// 读取 CSV 文件
     private func readCSV(from url: URL) async throws -> [[String: String]] {
-        let content = try String(contentsOf: url, encoding: .utf8)
-        let lines = content.components(separatedBy: .newlines)
-            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        let content = try readCSVContent(from: url)
+        let parsedRows = parseCSVRows(content)
+            .filter { row in
+                !row.allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            }
         
-        guard lines.count >= 2 else {
+        guard parsedRows.count >= 2 else {
             throw ExcelError.invalidFormat("文件至少需要包含表头和一行数据")
         }
         
         // 解析表头
-        let headers = parseCSVLine(lines[0])
+        let headers = parsedRows[0].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         
         // 解析数据行
-        var rows: [[String: String]] = []
-        for i in 1..<lines.count {
-            let values = parseCSVLine(lines[i])
-            if values.count == headers.count {
-                var row: [String: String] = [:]
-                for (index, header) in headers.enumerated() {
-                    row[header] = values[index]
-                }
-                rows.append(row)
+        var result: [[String: String]] = []
+        for values in parsedRows.dropFirst() {
+            var row: [String: String] = [:]
+            for (index, header) in headers.enumerated() where !header.isEmpty {
+                row[header] = index < values.count ? values[index] : ""
             }
+            result.append(row)
         }
         
-        return rows
+        return result
+    }
+
+    private func readCSVContent(from url: URL) throws -> String {
+        let data = try Data(contentsOf: url)
+        let encodings: [String.Encoding] = [
+            .utf8,
+            .unicode,
+            .utf16LittleEndian,
+            .utf16BigEndian
+        ]
+
+        for encoding in encodings {
+            if let content = String(data: data, encoding: encoding) {
+                return content
+            }
+        }
+
+        let cfEncoding = CFStringConvertEncodingToNSStringEncoding(
+            CFStringEncoding(CFStringEncodings.GB_18030_2000.rawValue)
+        )
+        if let content = String(data: data, encoding: String.Encoding(rawValue: cfEncoding)) {
+            return content
+        }
+
+        throw ExcelError.invalidFormat("无法识别 CSV 编码，请将文件保存为 UTF-8、UTF-16 或 GB18030")
     }
     
     /// 读取 XLSX 文件 (ZIP + XML 解析)
@@ -352,24 +377,67 @@ class ExcelService: ObservableObject {
     
     // MARK: - 私有方法
     
-    private func parseCSVLine(_ line: String) -> [String] {
-        var values: [String] = []
-        var current = ""
+    private func parseCSVRows(_ content: String) -> [[String]] {
+        let normalizedContent = normalizedCSVContent(content)
+        var rows: [[String]] = []
+        var currentRow: [String] = []
+        var currentField = ""
         var inQuotes = false
-        
-        for char in line {
-            if char == "\"" {
-                inQuotes.toggle()
-            } else if char == "," && !inQuotes {
-                values.append(current.trimmingCharacters(in: .whitespaces))
-                current = ""
+
+        var index = normalizedContent.startIndex
+        while index < normalizedContent.endIndex {
+            let character = normalizedContent[index]
+
+            if inQuotes {
+                if character == "\"" {
+                    let nextIndex = normalizedContent.index(after: index)
+                    if nextIndex < normalizedContent.endIndex, normalizedContent[nextIndex] == "\"" {
+                        currentField.append("\"")
+                        index = nextIndex
+                    } else {
+                        inQuotes = false
+                    }
+                } else {
+                    currentField.append(character)
+                }
             } else {
-                current.append(char)
+                switch character {
+                case "\"":
+                    inQuotes = true
+                case ",":
+                    currentRow.append(currentField)
+                    currentField = ""
+                case "\n":
+                    currentRow.append(currentField)
+                    rows.append(currentRow)
+                    currentRow = []
+                    currentField = ""
+                case "\r":
+                    break
+                default:
+                    currentField.append(character)
+                }
             }
+
+            index = normalizedContent.index(after: index)
         }
-        values.append(current.trimmingCharacters(in: .whitespaces))
-        
-        return values
+
+        if !currentField.isEmpty || !currentRow.isEmpty {
+            currentRow.append(currentField)
+            rows.append(currentRow)
+        }
+
+        return rows
+    }
+
+    private func normalizedCSVContent(_ content: String) -> String {
+        var normalized = content
+        if normalized.hasPrefix("\u{feff}") {
+            normalized.removeFirst()
+        }
+        normalized = normalized.replacingOccurrences(of: "\r\n", with: "\n")
+        normalized = normalized.replacingOccurrences(of: "\r", with: "\n")
+        return normalized
     }
     
     private func escapeCSV(_ value: String) -> String {

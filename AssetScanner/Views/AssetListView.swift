@@ -52,6 +52,13 @@ struct AssetListView: View {
                 }
                 .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                 .listRowBackground(Color.clear)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        viewModel.deleteAsset(asset)
+                    } label: {
+                        Label(L("delete"), systemImage: "trash")
+                    }
+                }
             }
         }
         .listStyle(.insetGrouped)

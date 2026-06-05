@@ -8,20 +8,27 @@ struct ScanView: View {
     @State private var manualCode = ""
     @State private var hasScanned = false
     @State private var scanSuccess = false
-    @State private var showImportAlert = false
+    @State private var scanEnabled = true
+    @State private var scanMode: CameraScannerView.ScanMode = .single
+    
+    private var cleanedManualCode: String {
+        manualCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var scanModeTitle: String {
+        scanMode == .single ? "单次识别" : "连续识别"
+    }
     
     var body: some View {
-        CameraScannerView { code in
-            guard !hasScanned else { return }
-            hasScanned = true
-            scanSuccess = true
-            
-            // 震动反馈
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
-            
+        CameraScannerView(onScan: { code in
+            if scanMode == .single {
+                guard !hasScanned else { return }
+                hasScanned = true
+                scanSuccess = true
+            }
+
             viewModel.processBarcode(code)
-        }
+        }, isEnabled: scanEnabled, mode: scanMode)
         .edgesIgnoringSafeArea(.all)
         .overlay {
             // 顶部毛玻璃导航栏
@@ -58,9 +65,12 @@ struct ScanView: View {
         .fileImporter(
             isPresented: $showImportSheet,
             allowedContentTypes: [
-                UTType(filenameExtension: "csv")!,
-                UTType(filenameExtension: "xlsx")!,
-                UTType(filenameExtension: "xls")!
+                .commaSeparatedText,
+                .plainText,
+                .text,
+                UTType(filenameExtension: "xlsx") ?? .data,
+                UTType(mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ?? .data,
+                UTType(filenameExtension: "csv") ?? .commaSeparatedText
             ],
             allowsMultipleSelection: false
         ) { result in
@@ -81,36 +91,47 @@ struct ScanView: View {
     
     @ViewBuilder
     private var topOverlay: some View {
-        HStack {
-            Button(action: {}) {
-                Image(systemName: "chevron.left")
-                    .font(.title2)
-                    .foregroundColor(.white)
+        VStack(spacing: 14) {
+            HStack {
+                Circle()
+                    .fill(scanEnabled ? Color.green.opacity(0.9) : Color.red.opacity(0.9))
+                    .frame(width: 10, height: 10)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("scan_title"))
+                        .font(.title3.weight(.semibold))
+                        .foregroundColor(.white)
+                    Text(scanEnabled ? scanModeTitle : "扫码已暂停")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.78))
+                }
+
+                Spacer()
+
+                HStack(spacing: 12) {
+                    Button(action: { showImportSheet = true }) {
+                        overlayIcon(symbol: "square.and.arrow.down")
+                    }
+
+                    Button(action: { scanEnabled.toggle() }) {
+                        overlayIcon(symbol: scanEnabled ? "camera.fill" : "camera.slash.fill")
+                            .foregroundColor(scanEnabled ? .white : Color(red: 1.0, green: 0.78, blue: 0.78))
+                    }
+                    .accessibilityLabel(scanEnabled ? "关闭扫码" : "开启扫码")
+                }
             }
-            .disabled(true)
-            
-            Spacer()
-            
-            Text(L("scan_title"))
-                .font(.title3)
-                .fontWeight(.semibold)
-                .foregroundColor(.white)
-                .shadow(radius: 2)
-            
-            Spacer()
-            
-            Button(action: { showImportSheet = true }) {
-                Image(systemName: "square.and.arrow.down")
-                    .font(.title2)
-                    .foregroundColor(.white)
+
+            HStack(spacing: 10) {
+                statusChip(title: scanEnabled ? "相机开启" : "相机关闭", symbol: scanEnabled ? "camera.aperture" : "pause.circle")
+                statusChip(title: scanMode == .single ? "单次模式" : "连续模式", symbol: scanMode == .single ? "viewfinder.circle" : "repeat.circle")
             }
         }
         .padding(.horizontal, 20)
         .padding(.top, 56)
-        .padding(.bottom, 16)
+        .padding(.bottom, 14)
         .background(
             VisualEffectBlur(style: .dark)
-                .opacity(0.85)
+                .opacity(0.88)
         )
     }
     
@@ -118,7 +139,52 @@ struct ScanView: View {
     
     @ViewBuilder
     private var bottomPanel: some View {
-        VStack(spacing: 14) {
+        VStack(spacing: 16) {
+            VStack(spacing: 12) {
+                HStack(alignment: .center, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("扫码控制")
+                            .font(.subheadline.weight(.semibold))
+                        Text(scanEnabled ? "保持镜头开启，随时准备识别" : "暂停识别，保留当前页面")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    Toggle("", isOn: $scanEnabled)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
+                }
+
+                Picker("模式", selection: $scanMode) {
+                    Text("单次").tag(CameraScannerView.ScanMode.single)
+                    Text("连续").tag(CameraScannerView.ScanMode.continuous)
+                }
+                .pickerStyle(.segmented)
+                .disabled(!scanEnabled)
+            }
+            .padding(14)
+            .background(Color(.systemBackground).opacity(0.92))
+            .cornerRadius(16)
+            .padding(.horizontal, 20)
+            .onChange(of: scanEnabled) { _, enabled in
+                if enabled {
+                    hasScanned = false
+                    scanSuccess = false
+                    viewModel.scannedAssetId = nil
+                } else {
+                    hasScanned = false
+                    scanSuccess = false
+                }
+            }
+            .onChange(of: scanMode) { _, newMode in
+                if newMode == .continuous {
+                    hasScanned = false
+                    scanSuccess = false
+                }
+            }
+            
             HStack(spacing: 12) {
                 HStack(spacing: 8) {
                     Image(systemName: "barcode.viewfinder")
@@ -132,8 +198,8 @@ struct ScanView: View {
                 .cornerRadius(12)
                 
                 Button(action: {
-                    if !manualCode.isEmpty {
-                        viewModel.processBarcode(manualCode)
+                    if !cleanedManualCode.isEmpty {
+                        viewModel.processBarcode(cleanedManualCode)
                     }
                 }) {
                     Text(L("scan_query"))
@@ -150,10 +216,34 @@ struct ScanView: View {
                         )
                         .cornerRadius(12)
                 }
-                .disabled(manualCode.isEmpty)
-                .opacity(manualCode.isEmpty ? 0.6 : 1)
+                .disabled(cleanedManualCode.isEmpty)
+                .opacity(cleanedManualCode.isEmpty ? 0.6 : 1)
             }
             .padding(.horizontal, 20)
+
+            if scanMode == .single, scanSuccess {
+                Button(action: {
+                    hasScanned = false
+                    scanSuccess = false
+                    viewModel.scannedAssetId = nil
+                }) {
+                    Label("重新扫码", systemImage: "arrow.clockwise")
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .font(.system(size: 16))
+                        .background(
+                            LinearGradient(
+                                colors: [Color(red: 0.25, green: 0.55, blue: 0.9), Color(red: 0.2, green: 0.45, blue: 0.85)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(12)
+                }
+                .padding(.horizontal, 20)
+            }
             
             Button(action: { showImportSheet = true }) {
                 Label(L("scan_import"), systemImage: "square.and.arrow.down")
@@ -178,6 +268,26 @@ struct ScanView: View {
             VisualEffectBlur(style: .systemMaterial)
                 .opacity(0.9)
         )
+    }
+
+    @ViewBuilder
+    private func overlayIcon(symbol: String) -> some View {
+        Image(systemName: symbol)
+            .font(.subheadline.weight(.semibold))
+            .frame(width: 36, height: 36)
+            .background(Color.white.opacity(0.16))
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+
+    @ViewBuilder
+    private func statusChip(title: String, symbol: String) -> some View {
+        Label(title, systemImage: symbol)
+            .font(.caption.weight(.medium))
+            .foregroundColor(.white.opacity(0.92))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 7)
+            .background(Color.white.opacity(0.12))
+            .clipShape(Capsule())
     }
     
     // MARK: - 扫描框动画

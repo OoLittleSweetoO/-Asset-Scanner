@@ -51,3 +51,13 @@ coverage/
 # Generated files
 *.swiftsourceinfo
 *.stringsdata
+
+# Local caches and backups
+DerivedData-iOS/
+TypecheckModuleCache/
+backups/
+*.backup
+*.bak
+*.bak2
+*.mac_backup
+ff68436e64a1b87d109c3234c6724b55.png

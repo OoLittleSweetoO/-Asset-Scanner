@@ -1,5 +1,6 @@
 import Foundation
 import UniformTypeIdentifiers
+import CoreFoundation
 
 /// Excel 文件服务 - macOS 版本
 class ExcelService {
@@ -21,63 +22,70 @@ class ExcelService {
             throw NSError(domain: "ExcelError", code: 2, userInfo: [NSLocalizedDescriptionKey: "文件过大（\(size) 字节），最大支持 100MB"])
         }
         
-        let content = try String(contentsOf: url, encoding: .utf8)
+        let content = try readCSVContent(from: url)
         print("✅ 读取成功，\(content.count) 字符")
         
-        // 使用 components(separatedBy: .newlines) 过滤空行
-        let lines = content.components(separatedBy: .newlines)
-            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        
-        print("📊 行数: \(lines.count)")
-        
-        guard lines.count >= 2 else {
+        let rows = CSVService.parse(content)
+        let nonEmptyRows = rows.filter { row in
+            !row.allSatisfy { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        }
+
+        print("📊 行数: \(nonEmptyRows.count)")
+
+        guard nonEmptyRows.count >= 2 else {
             throw NSError(domain: "ExcelError", code: 3, userInfo: [NSLocalizedDescriptionKey: "文件至少需要包含表头和一行数据"])
         }
-        
-        // 解析表头
-        let headers = parseCSVLine(lines[0])
+
+        let headers = nonEmptyRows[0].map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         print("📋 表头: \(headers)")
-        
-        // 解析数据行
-        var rows: [[String: String]] = []
-        for i in 1..<lines.count {
-            let values = parseCSVLine(lines[i])
+
+        var parsedRows: [[String: String]] = []
+        for i in 1..<nonEmptyRows.count {
+            let values = nonEmptyRows[i]
             if values.count == headers.count {
                 var row: [String: String] = [:]
                 for (index, header) in headers.enumerated() {
                     row[header] = values[index]
                 }
-                rows.append(row)
+                parsedRows.append(row)
             }
             
             if i % 100 == 0 {
                 print("➡️ 解析到第 \(i) 行...")
             }
         }
-        
-        print("✅ 总共解析 \(rows.count) 行数据")
-        return rows
+
+        print("✅ 总共解析 \(parsedRows.count) 行数据")
+        return parsedRows
     }
-    
-    /// 解析 CSV 一行（处理引号分隔的字段）
-    private func parseCSVLine(_ line: String) -> [String] {
-        var result: [String] = []
-        var currentField = ""
-        var inQuotes = false
-        
-        for char in line {
-            if char == "\"" {
-                inQuotes = !inQuotes
-            } else if char == "," && !inQuotes {
-                result.append(currentField.trimmingCharacters(in: .whitespaces))
-                currentField = ""
-            } else {
-                currentField.append(char)
+
+    private func readCSVContent(from url: URL) throws -> String {
+        let data = try Data(contentsOf: url)
+        let gb18030 = String.Encoding(
+            rawValue: CFStringConvertEncodingToNSStringEncoding(
+                CFStringEncoding(CFStringEncodings.GB_18030_2000.rawValue)
+            )
+        )
+
+        let candidateEncodings: [String.Encoding] = [
+            .utf8,
+            .unicode,
+            .utf16LittleEndian,
+            .utf16BigEndian,
+            gb18030
+        ]
+
+        for encoding in candidateEncodings {
+            if let content = String(data: data, encoding: encoding) {
+                return content
             }
         }
-        result.append(currentField.trimmingCharacters(in: .whitespaces))
-        
-        return result
+
+        throw NSError(
+            domain: "ExcelError",
+            code: 4,
+            userInfo: [NSLocalizedDescriptionKey: "CSV 编码无法识别，请尝试 UTF-8 或 UTF-16 编码后重新导入"]
+        )
     }
     
     private func readXLSX(from url: URL) async throws -> [[String: String]] {
@@ -85,29 +93,31 @@ class ExcelService {
     }
     
     func exportAssets(_ assets: [macOS_Asset], to url: URL) async throws {
-        var csv = "外编号,名称,型号,品牌,一级状态,内编号,一级存放地,采购日期,备注\n"
-        for asset in assets {
-            let row = [
+        let rows = [
+            ["外编号", "名称", "型号", "品牌", "一级状态", "内编号", "一级存放地", "采购日期", "备注"]
+        ] + assets.map { asset in
+            [
                 asset.id, asset.assetName, asset.modelName, asset.brand,
                 asset.status.rawValue, asset.internalCode, asset.location,
                 asset.purchaseDate?.toString() ?? "", asset.note ?? ""
-            ].map { $0.replacingOccurrences(of: ",", with: "\\,") }
-            csv += row.joined(separator: ",") + "\n"
+            ]
         }
+        let csv = CSVService.encode(rows: rows)
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
     
     func exportRecords(_ records: [macOS_OperationRecord], to url: URL) async throws {
-        var csv = "id,外编号,名称,类型,操作人,时间,备注,预计归还时间\n"
-        for record in records {
-            let row = [
+        let rows = [
+            ["id", "外编号", "名称", "类型", "操作人", "时间", "备注", "预计归还时间"]
+        ] + records.map { record in
+            [
                 record.id.uuidString, record.assetId, record.assetName,
                 record.type.rawValue, record.operatorName,
                 record.timestamp.toString(), record.note ?? "",
                 record.estimatedReturnDate?.toString() ?? ""
             ]
-            csv += row.joined(separator: ",") + "\n"
         }
+        let csv = CSVService.encode(rows: rows)
         try csv.write(to: url, atomically: true, encoding: .utf8)
     }
 }

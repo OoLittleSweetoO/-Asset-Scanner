@@ -66,11 +66,14 @@
 /* ========== Asset Status ========== */
 "status_in_stock" = "IN STOCK";
 "status_checked_out" = "CHECKED OUT";
-"status_maintenance" = "MAINTENANCE";
+"status_maintenance" = "REPAIR";
+"status_scrapped" = "SCRAPPED";
 
 /* ========== Operation Type ========== */
 "type_check_in" = "CHECK IN";
 "type_check_out" = "CHECK OUT";
+"type_repair" = "REPAIR";
+"type_scrap" = "SCRAPPED";
 
 /* ========== Reminder Notes ========== */
 "note_barcode" = "Barcode";

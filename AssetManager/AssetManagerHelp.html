@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AssetManager 使用说明</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f5f7fb;
+      --card: rgba(255,255,255,0.88);
+      --text: #172033;
+      --muted: #5d6880;
+      --line: rgba(23,32,51,0.1);
+      --blue: #3268cc;
+      --green: #25985d;
+      --orange: #d97a00;
+      --red: #d64555;
+      --gray: #6c7280;
+      --shadow: 0 14px 40px rgba(30, 41, 59, 0.08);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1420;
+        --card: rgba(23, 30, 46, 0.92);
+        --text: #edf2ff;
+        --muted: #a8b2c7;
+        --line: rgba(255,255,255,0.09);
+        --shadow: 0 14px 40px rgba(0, 0, 0, 0.28);
+      }
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Helvetica Neue", sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(50,104,204,0.16), transparent 30%),
+        radial-gradient(circle at top right, rgba(37,152,93,0.12), transparent 26%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    .hero, .section, .toc {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(50,104,204,0.12);
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    h1 {
+      margin: 16px 0 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      max-width: 840px;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .hero-stat {
+      padding: 14px 16px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.32);
+      border: 1px solid var(--line);
+    }
+
+    .hero-stat strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .hero-stat span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .toc {
+      padding: 18px 22px;
+      margin-bottom: 20px;
+    }
+
+    .toc h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+
+    .toc-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .toc a {
+      display: block;
+      text-decoration: none;
+      color: var(--text);
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      font-size: 14px;
+      background: rgba(255,255,255,0.22);
+    }
+
+    .section {
+      padding: 24px;
+      margin-bottom: 18px;
+    }
+
+    .section h2 {
+      margin: 0 0 12px;
+      font-size: 24px;
+    }
+
+    .section p, .section li {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .card {
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.2);
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      border: 1px solid transparent;
+    }
+
+    .blue { background: rgba(50,104,204,0.12); color: var(--blue); }
+    .green { background: rgba(37,152,93,0.12); color: var(--green); }
+    .orange { background: rgba(217,122,0,0.12); color: var(--orange); }
+    .red { background: rgba(214,69,85,0.12); color: var(--red); }
+    .gray { background: rgba(108,114,128,0.12); color: var(--gray); }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: rgba(50,104,204,0.08);
+      color: var(--blue);
+    }
+
+    .footer {
+      margin-top: 26px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 880px) {
+      .hero-grid,
+      .toc-grid,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">AssetManager 帮助中心</div>
+      <h1>AssetManager 功能说明</h1>
+      <p>这份说明页覆盖 AssetManager 当前界面里的主要按钮、同步入口和常见操作路径。适合第一次上手，也适合忘记某个按钮是做什么的时候随手查一下。</p>
+      <div class="hero-grid">
+        <div class="hero-stat"><strong>版本号</strong><span>v2.3.5</span></div>
+        <div class="hero-stat"><strong>更新日期</strong><span>2026-05-21</span></div>
+        <div class="hero-stat"><strong>资产列表</strong><span>新增、筛选、批量改状态、删除</span></div>
+        <div class="hero-stat"><strong>资产管理</strong><span>来源文件、iCloud、飞书、提醒事项</span></div>
+        <div class="hero-stat"><strong>历史记录</strong><span>出入库、送修、待报废、右键编辑</span></div>
+        <div class="hero-stat"><strong>配置文件</strong><span>保存/读取当前同步配置</span></div>
+      </div>
+    </section>
+
+    <section class="toc">
+      <h2>目录</h2>
+      <div class="toc-grid">
+        <a href="#main">主界面</a>
+        <a href="#asset-list">资产列表</a>
+        <a href="#asset-detail">资产详情</a>
+        <a href="#history">历史记录</a>
+        <a href="#management">资产管理</a>
+        <a href="#sync">同步与配置</a>
+      </div>
+    </section>
+
+    <section class="section" id="main">
+      <h2>主界面</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>顶部工具栏</h3>
+          <ul>
+            <li><strong>导入 CSV</strong>：导入资产文件，生成资产条目和来源记录。</li>
+            <li><strong>同步状态徽标</strong>：显示当前同步状态，例如成功、失败、待同步。</li>
+            <li><strong>帮助按钮</strong>：打开这份 HTML 说明页。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>底部页签</h3>
+          <ul>
+            <li><strong>资产列表</strong>：查看资产、改状态、删除、批量操作。</li>
+            <li><strong>资产管理</strong>：看来源文件、做 iCloud / 飞书 / Reminder 操作。</li>
+            <li><strong>历史记录</strong>：查看每次状态变化并管理记录。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="asset-list">
+      <h2>资产列表</h2>
+      <div class="tag-row">
+        <span class="tag blue">搜索</span>
+        <span class="tag green">一键全部出库</span>
+        <span class="tag orange">批量状态</span>
+        <span class="tag red">删除设备</span>
+      </div>
+      <ul>
+        <li><strong>搜索框</strong>：支持按外编号、名称、型号、品牌搜索。</li>
+        <li><strong>添加</strong>：手动新增一个资产。</li>
+        <li><strong>一键全部出库</strong>：把当前在库资产统一变成已出库，并填写同一批的操作信息。</li>
+        <li><strong>批量状态</strong>：对选中资产执行批量入库、批量出库、批量送修、批量待报废。</li>
+        <li><strong>删除</strong>：删除选中的设备条目，并清理对应历史记录与来源关联。</li>
+        <li><strong>右键资产</strong>：可直接执行归还、送修、待报废、出库、查看详情、删除设备。</li>
+        <li><strong>双击资产</strong>：进入资产详情页。</li>
+      </ul>
+    </section>
+
+    <section class="section" id="asset-detail">
+      <h2>资产详情</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>状态区</h3>
+          <ul>
+            <li>显示当前资产状态、条码和最近更新时间。</li>
+            <li>不同状态会使用不同颜色高亮，方便肉眼快速判断。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>动作按钮</h3>
+          <ul>
+            <li><strong>归还</strong>：把资产改回在库，并生成入库记录。</li>
+            <li><strong>出库</strong>：填写操作人、备注、预计归还时间，生成出库记录。</li>
+            <li><strong>送修</strong>：改成送修状态，并生成送修记录。</li>
+            <li><strong>待报废</strong>：改成待报废状态，并生成待报废记录。</li>
+          </ul>
+        </div>
+      </div>
+      <p>详情页右上角还有 <strong>删除设备</strong> 按钮，用于直接移除当前资产。</p>
+    </section>
+
+    <section class="section" id="history">
+      <h2>历史记录</h2>
+      <ul>
+        <li><strong>搜索框</strong>：按条码、名称、操作人过滤历史。</li>
+        <li><strong>全选 / 删除选中</strong>：用于批量清理记录。</li>
+        <li><strong>同步选中</strong>：把带预计归还时间的出库记录同步到 Reminder。</li>
+        <li><strong>同步 Reminder</strong>：批量同步所有符合条件的出库记录。</li>
+        <li><strong>清空历史</strong>：删除所有历史记录。</li>
+        <li><strong>右键记录</strong>：可编辑或删除单条记录。</li>
+      </ul>
+      <div class="card">
+        <h3>右键编辑能改什么</h3>
+        <ul>
+          <li>操作人</li>
+          <li>备注</li>
+          <li>预计归还时间（仅出库记录）</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="management">
+      <h2>资产管理</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>统计卡片</h3>
+          <ul>
+            <li>显示总资产数量。</li>
+            <li>显示当前出库数量。</li>
+            <li>显示来源文件数量。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>来源文件列表</h3>
+          <ul>
+            <li>显示每次导入的文件名、时间和资产数量。</li>
+            <li>双击来源可看该文件关联资产。</li>
+            <li><strong>更新 CSV</strong>：用新的 CSV 更新当前来源，优先按外编码对比。</li>
+            <li>命中的旧条目会保留当前出入库 / 送修 / 待报废状态。</li>
+            <li>新条目会直接增加到当前来源里。</li>
+            <li>消失条目会先显示名称、外编码、当前状态，再确认是否批量删除。</li>
+            <li><strong>编辑来源名称</strong>：支持手动修改来源显示名称。</li>
+            <li>删除来源记录前会确认，同时清理对应资产。</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="sync">
+      <h2>同步与配置</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>iCloud 同步</h3>
+          <ul>
+            <li><strong>选择目录</strong>：设置同步目录。</li>
+            <li><strong>从同步目录导入</strong>：把目录里的数据拉回本地。</li>
+            <li><strong>导出到同步目录</strong>：把当前本地数据写出去。</li>
+            <li><strong>双向同步</strong>：在本地和目录之间做一次合并同步。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>飞书同步</h3>
+          <ul>
+            <li>填写 <code>App ID</code>、<code>App Secret</code>。</li>
+            <li>支持直接解析资产表和记录表链接。</li>
+            <li><strong>保存配置</strong> 后会自动触发一次飞书同步。</li>
+            <li>本地状态变化会继续自动回写飞书。</li>
+            <li>支持 <strong>全量同步</strong>、<strong>从飞书导入</strong>、<strong>双向同步</strong>。</li>
+            <li>全量同步会先做比对，不是只往后追加。</li>
+            <li>资产表按 <code>外编号</code> 对齐：有则更新，没有则新增，本地已删除的远端旧条目会清理。</li>
+            <li>操作记录表优先按 <code>记录ID</code> 对齐，没有时退回 <code>外编号 + 操作类型 + 操作时间</code>。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h3>文件菜单</h3>
+        <ul>
+          <li><strong>保存当前配置...</strong>：保存 iCloud 路径、书签权限和飞书配置。</li>
+          <li><strong>读取配置...</strong>：从之前导出的配置文件恢复当前环境。</li>
+        </ul>
+      </div>
+    </section>
+
+    <p class="footer">如果你后面又加了新按钮或改了同步规则，建议连这份帮助页一起更新，这样应用内说明永远是跟着当前版本走的。</p>
+  </div>
+</body>
+</html>

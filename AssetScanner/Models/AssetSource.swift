@@ -6,12 +6,14 @@ struct AssetSource: Codable, Identifiable, Hashable {
     let fileName: String
     let importDate: Date
     let assetCount: Int
+    let assetIds: [String]
     
     enum CodingKeys: String, CodingKey {
         case id
         case fileName
         case importDate
         case assetCount
+        case assetIds
         
         // 中文字段名（用于向后兼容）
         case chineseFileName = "文件名"
@@ -30,6 +32,7 @@ struct AssetSource: Codable, Identifiable, Hashable {
                      container.decodeIfPresent(Date.self, forKey: .chineseImportDate) ?? Date()
         assetCount = try container.decodeIfPresent(Int.self, forKey: .assetCount) ??
                      container.decodeIfPresent(Int.self, forKey: .chineseAssetCount) ?? 0
+        assetIds = try container.decodeIfPresent([String].self, forKey: .assetIds) ?? []
     }
     
     func encode(to encoder: Encoder) throws {
@@ -39,12 +42,14 @@ struct AssetSource: Codable, Identifiable, Hashable {
         try container.encode(fileName, forKey: .fileName)
         try container.encode(importDate, forKey: .importDate)
         try container.encode(assetCount, forKey: .assetCount)
+        try container.encode(assetIds, forKey: .assetIds)
     }
     
-    init(id: UUID = UUID(), fileName: String, importDate: Date = Date(), assetCount: Int) {
+    init(id: UUID = UUID(), fileName: String, importDate: Date = Date(), assetCount: Int, assetIds: [String] = []) {
         self.id = id
         self.fileName = fileName
         self.importDate = importDate
         self.assetCount = assetCount
+        self.assetIds = assetIds
     }
 }
