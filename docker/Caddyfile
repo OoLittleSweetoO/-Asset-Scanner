@@ -1,0 +1,29 @@
+{
+  local_certs
+  default_sni 10.10.10.71
+  auto_https disable_redirects
+}
+
+http://10.10.10.71 {
+  handle /assetmanager-local-ca.crt {
+    root * /data/caddy/pki/authorities/local
+    rewrite * /root.crt
+    file_server
+  }
+
+  handle {
+    redir https://{host}{uri} permanent
+  }
+}
+
+https://10.10.10.71 {
+  tls internal
+
+  header {
+    Strict-Transport-Security "max-age=31536000"
+    X-Content-Type-Options "nosniff"
+    Referrer-Policy "same-origin"
+  }
+
+  reverse_proxy web:3000
+}

@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\..\assets\icons\app_icon_256.ico</ApplicationIcon>
+    <PackageIcon>icon.png</PackageIcon>
+    <AssemblyName>AssetScanner</AssemblyName>
+    <Version>1.1.0</Version>
+    <AssemblyVersion>1.1.0.0</AssemblyVersion>
+    <FileVersion>1.1.0.0</FileVersion>
+    <Company>AssetScanner</Company>
+    <Product>AssetScanner - 资产管理工具</Product>
+    <Description>资产管理工具 - Windows Desktop Edition</Description>
+    <PackAsTool>false</PackAsTool>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <IncludeNativeBinaries>true</IncludeNativeBinaries>
+  </PropertyGroup>
+
+  <!-- 引用库项目 -->
+  <ItemGroup>
+    <ProjectReference Include="..\AssetScanner\AssetScanner.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AssetScanner\Views\MainWindow.xaml.cs" Link="Views\MainWindow.xaml.cs" />
+    <Page Include="..\AssetScanner\Views\MainWindow.xaml" Link="Views\MainWindow.xaml" />
+  </ItemGroup>
+
+  <!-- 图标资源 -->
+  <ItemGroup>
+    <None Include="..\..\assets\icons\app_icon_256.ico">
+      <Link>icons\app_icon_256.ico</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- 打包相关 -->
+  <ItemGroup>
+    <None Include="..\..\assets\icons\app_icon_256.png">
+      <Link>icon.png</Link>
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="app_title">
+    <value>AssetScanner - Asset Management Tool</value>
+  </data>
+  <data name="tab_scan">
+    <value>📷 Scan</value>
+  </data>
+  <data name="tab_assets">
+    <value>📋 Assets</value>
+  </data>
+  <data name="tab_management">
+    <value>⚙️ Management</value>
+  </data>
+  <data name="tab_history">
+    <value>📜 History</value>
+  </data>
+  <data name="btn_scan">
+    <value>📷 Scan</value>
+  </data>
+  <data name="btn_import">
+    <value>📁 Import</value>
+  </data>
+  <data name="btn_export_assets">
+    <value>📤 Export Assets</value>
+  </data>
+  <data name="btn_export_records">
+    <value>📜 Export Records</value>
+  </data>
+  <data name="btn_check_in">
+    <value>Check In</value>
+  </data>
+  <data name="btn_check_out">
+    <value>Check Out</value>
+  </data>
+  <data name="btn_repair">
+    <value>Repair</value>
+  </data>
+  <data name="btn_delete">
+    <value>Delete</value>
+  </data>
+  <data name="btn_search">
+    <value>🔍 Search</value>
+  </data>
+  <data name="placeholder_search">
+    <value>Search assets...</value>
+  </data>
+  <data name="placeholder_input_barcode">
+    <value>Enter barcode manually...</value>
+  </data>
+  <data name="status_in_stock">
+    <value>In Stock</value>
+  </data>
+  <data name="status_checked_out">
+    <value>Checked Out</value>
+  </data>
+  <data name="status_maintenance">
+    <value>Maintenance</value>
+  </data>
+  <data name="type_check_in">
+    <value>Check In</value>
+  </data>
+  <data name="type_check_out">
+    <value>Check Out</value>
+  </data>
+  <data name="type_repair">
+    <value>Repair</value>
+  </data>
+  <data name="col_id">
+    <value>External ID</value>
+  </data>
+  <data name="col_name">
+    <value>Name</value>
+  </data>
+  <data name="col_model">
+    <value>Model</value>
+  </data>
+  <data name="col_brand">
+    <value>Brand</value>
+  </data>
+  <data name="col_internal_code">
+    <value>Internal Code</value>
+  </data>
+  <data name="col_status">
+    <value>Status</value>
+  </data>
+  <data name="col_location">
+    <value>Location</value>
+  </data>
+  <data name="col_last_updated">
+    <value>Last Updated</value>
+  </data>
+  <data name="col_time">
+    <value>Time</value>
+  </data>
+  <data name="col_asset_id">
+    <value>Barcode</value>
+  </data>
+  <data name="col_type">
+    <value>Type</value>
+  </data>
+  <data name="col_operator">
+    <value>Operator</value>
+  </data>
+  <data name="col_note">
+    <value>Note</value>
+  </data>
+  <data name="col_estimated_return">
+    <value>Est. Return</value>
+  </data>
+  <data name="error_import_failed">
+    <value>Import failed: {0}</value>
+  </data>
+  <data name="error_export_failed">
+    <value>Export failed: {0}</value>
+  </data>
+  <data name="error_title">
+    <value>Error</value>
+  </data>
+  <data name="confirm">
+    <value>OK</value>
+  </data>
+  <data name="current_user">
+    <value>Current User</value>
+  </data>
+  <data name="asset_list_title">
+    <value>Asset List</value>
+  </data>
+  <data name="history_title">
+    <value>Operation Records</value>
+  </data>
+  <data name="deleted_assets">
+    <value>Deleted {0} asset(s)</value>
+  </data>
+</root>
