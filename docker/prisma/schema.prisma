@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AssetStatus {
+  IN_STOCK
+  CHECKED_OUT
+  MAINTENANCE
+  SCRAPPED
+}
+
+enum OperationType {
+  CHECK_IN
+  CHECK_OUT
+  REPAIR
+  SCRAP
+  TRANSFER_OUT
+  TRANSFER_IN
+}
+
+enum TransferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assetsOwned        Asset[]          @relation("AssetOwner")
+  sessions           Session[]
+  operationRecords   OperationRecord[]
+  sources            AssetSource[]
+  feishuConfig       FeishuConfig?
+  transferRequests   AssetTransfer[]  @relation("TransferRequester")
+  transfersFrom      AssetTransfer[]  @relation("TransferFrom")
+  transfersTo        AssetTransfer[]  @relation("TransferTo")
+  auditLogs          AuditLog[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Asset {
+  id           String      @id @default(cuid())
+  ownerId      String
+  assetCode    String
+  assetName    String
+  modelName    String      @default("")
+  brand        String      @default("")
+  status       AssetStatus @default(IN_STOCK)
+  internalCode String      @default("")
+  location     String      @default("")
+  purchaseDate DateTime?
+  note         String?     @db.Text
+  sourceId     String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  owner            User              @relation("AssetOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  source           AssetSource?      @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  operationRecords OperationRecord[]
+  transfers        AssetTransfer[]
+
+  @@unique([ownerId, assetCode])
+  @@index([ownerId, status])
+  @@index([assetCode])
+}
+
+model AssetSource {
+  id        String   @id @default(cuid())
+  ownerId   String
+  fileName  String
+  assetCount Int    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner  User    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  assets Asset[]
+
+  @@unique([ownerId, fileName])
+}
+
+model OperationRecord {
+  id                  String        @id @default(cuid())
+  ownerId             String
+  assetId             String?
+  assetCode           String
+  assetName           String
+  type                OperationType
+  operatorName        String
+  note                String?       @db.Text
+  estimatedReturnDate DateTime?
+  isSyncedToReminders Boolean       @default(false)
+  createdAt           DateTime      @default(now())
+
+  owner User   @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  asset Asset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+
+  @@index([ownerId, createdAt])
+  @@index([assetCode])
+}
+
+model FeishuConfig {
+  id              String   @id @default(cuid())
+  ownerId         String   @unique
+  appId           String   @default("")
+  appSecretCipher String   @default("")
+  assetAppToken   String   @default("")
+  assetTableId    String   @default("")
+  assetTableLink  String   @default("") @db.VarChar(1024)
+  recordAppToken  String   @default("")
+  recordTableId   String   @default("")
+  recordTableLink String   @default("") @db.VarChar(1024)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+}
+
+model AssetTransfer {
+  id          String         @id @default(cuid())
+  assetId     String
+  fromUserId  String
+  toUserId    String
+  requestedById String
+  status      TransferStatus @default(PENDING)
+  note        String?        @db.Text
+  createdAt   DateTime       @default(now())
+  decidedAt   DateTime?
+
+  asset       Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  fromUser    User  @relation("TransferFrom", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser      User  @relation("TransferTo", fields: [toUserId], references: [id], onDelete: Cascade)
+  requestedBy User  @relation("TransferRequester", fields: [requestedById], references: [id], onDelete: Cascade)
+
+  @@index([fromUserId, status])
+  @@index([toUserId, status])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

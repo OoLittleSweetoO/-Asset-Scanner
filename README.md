@@ -10,8 +10,12 @@
 |------|------|------|
 | `AssetScanner` | iOS 26+ | 扫码 + 管理（相机扫码为主） |
 | `AssetManager` | macOS 26+ | 桌面管理（文件导入/导出为主） |
+| `windows/` | Windows 10+ | WPF 桌面版，支持本地资产管理和 Docker 服务器同步 |
+| `docker/` | Linux/Docker | Web 版，支持账户、数据库、飞书多维表格同步和移动端扫码 |
 
 共享 Models / ViewModels / Services 代码
+
+Windows 与 Docker 版本的运行方式见 [WINDOWS_DOCKER.md](WINDOWS_DOCKER.md)。
 
 ---
 

@@ -61,3 +61,20 @@ backups/
 *.bak2
 *.mac_backup
 ff68436e64a1b87d109c3234c6724b55.png
+
+# Windows / .NET
+.vs/
+bin/
+obj/
+dist/
+*.user
+*.suo
+
+# Docker web / Node
+node_modules/
+.next/
+.env
+.env.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

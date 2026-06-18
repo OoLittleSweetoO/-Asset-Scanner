@@ -1,0 +1,55 @@
+services:
+  mariadb:
+    image: mariadb:11.4
+    container_name: assetmanager-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_USER: assetmanager
+      MARIADB_PASSWORD: assetmanager
+      MARIADB_DATABASE: assetmanager
+      MARIADB_ROOT_PASSWORD: assetmanager-root
+    volumes:
+      - assetmanager_mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u assetmanager -passetmanager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: assetmanager-web
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql://assetmanager:assetmanager@mariadb:3306/assetmanager
+      APP_URL: https://10.10.10.71
+      SESSION_SECRET: change-me-in-production
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: ChangeMe123!
+    ports:
+      - "127.0.0.1:8090:3000"
+    command: sh -c "npx prisma db push --accept-data-loss && npm run db:seed && node server.js"
+
+  caddy:
+    image: caddy:2.8
+    container_name: assetmanager-caddy
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - assetmanager_caddy_data:/data
+      - assetmanager_caddy_config:/config
+
+volumes:
+  assetmanager_mariadb:
+  assetmanager_caddy_data:
+  assetmanager_caddy_config:
