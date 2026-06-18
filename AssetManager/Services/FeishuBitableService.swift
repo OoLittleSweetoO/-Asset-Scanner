@@ -541,7 +541,7 @@ class FeishuBitableService: ObservableObject {
         let secondaryStatus = latestActiveRecord?.estimatedReturnDate.map { shortDateFormatter.string(from: $0) }
             ?? structuredNoteValue(label: "二级状态", in: asset.note)
 
-        var fields: [String: Any] = [
+        let fields: [String: Any] = [
             "资产属性": "固定资产",
             "保管科室": structuredNoteValue(label: "保管科室", in: asset.note) ?? "",
             "资产专管": structuredNoteValue(label: "资产专管", in: asset.note) ?? "",

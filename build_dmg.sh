@@ -5,7 +5,7 @@
 set -e
 
 APP_NAME="AssetManager"
-APP_VERSION="2.3.5"
+APP_VERSION="2.3.6"
 PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DERIVED_DATA="$PROJECT_DIR/build/DerivedData-Release"
 APP_PATH="$DERIVED_DATA/Build/Products/Release/$APP_NAME.app"

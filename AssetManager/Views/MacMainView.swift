@@ -51,7 +51,7 @@ struct MacMainView: View {
         .environmentObject(assetVM)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button("导入 CSV", systemImage: "square.and.arrow.down") { showImportPanel = true }
+                Button("导入文件", systemImage: "square.and.arrow.down") { showImportPanel = true }
             }
             ToolbarItem(placement: .primaryAction) {
                 Button("帮助", systemImage: "questionmark.circle") {
@@ -65,7 +65,13 @@ struct MacMainView: View {
         }
         .fileImporter(
             isPresented: $showImportPanel,
-            allowedContentTypes: [.commaSeparatedText, .plainText, .text],
+            allowedContentTypes: [
+                .commaSeparatedText,
+                .plainText,
+                .text,
+                UTType(filenameExtension: "xlsx") ?? .data,
+                UTType(mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ?? .data
+            ],
             onCompletion: handleImport
         )
         .alert("操作结果", isPresented: Binding(
@@ -607,8 +613,14 @@ struct AssetManagementView: View {
                 guard let source = assetVM.sources.first(where: { $0.id == row.id }) else { return }
 
                 let panel = NSOpenPanel()
-                panel.title = "选择用于更新的 CSV 文件"
-                panel.allowedContentTypes = [.commaSeparatedText, .plainText, .text]
+                panel.title = "选择用于更新的 CSV / XLSX 文件"
+                panel.allowedContentTypes = [
+                    .commaSeparatedText,
+                    .plainText,
+                    .text,
+                    UTType(filenameExtension: "xlsx") ?? .data,
+                    UTType(mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") ?? .data
+                ]
                 panel.canChooseFiles = true
                 panel.canChooseDirectories = false
                 panel.allowsMultipleSelection = false

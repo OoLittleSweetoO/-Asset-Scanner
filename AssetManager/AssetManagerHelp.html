@@ -234,8 +234,8 @@
       <h1>AssetManager 功能说明</h1>
       <p>这份说明页覆盖 AssetManager 当前界面里的主要按钮、同步入口和常见操作路径。适合第一次上手，也适合忘记某个按钮是做什么的时候随手查一下。</p>
       <div class="hero-grid">
-        <div class="hero-stat"><strong>版本号</strong><span>v2.3.5</span></div>
-        <div class="hero-stat"><strong>更新日期</strong><span>2026-05-21</span></div>
+        <div class="hero-stat"><strong>版本号</strong><span>v2.3.6</span></div>
+        <div class="hero-stat"><strong>更新日期</strong><span>2026-06-09</span></div>
         <div class="hero-stat"><strong>资产列表</strong><span>新增、筛选、批量改状态、删除</span></div>
         <div class="hero-stat"><strong>资产管理</strong><span>来源文件、iCloud、飞书、提醒事项</span></div>
         <div class="hero-stat"><strong>历史记录</strong><span>出入库、送修、待报废、右键编辑</span></div>
@@ -261,7 +261,7 @@
         <div class="card">
           <h3>顶部工具栏</h3>
           <ul>
-            <li><strong>导入 CSV</strong>：导入资产文件，生成资产条目和来源记录。</li>
+            <li><strong>导入文件</strong>：导入 CSV 或 XLSX 资产文件，生成资产条目和来源记录。</li>
             <li><strong>同步状态徽标</strong>：显示当前同步状态，例如成功、失败、待同步。</li>
             <li><strong>帮助按钮</strong>：打开这份 HTML 说明页。</li>
           </ul>
@@ -355,7 +355,7 @@
           <ul>
             <li>显示每次导入的文件名、时间和资产数量。</li>
             <li>双击来源可看该文件关联资产。</li>
-            <li><strong>更新 CSV</strong>：用新的 CSV 更新当前来源，优先按外编码对比。</li>
+            <li><strong>更新 CSV / XLSX</strong>：用新的资产文件更新当前来源，优先按外编码对比。</li>
             <li>命中的旧条目会保留当前出入库 / 送修 / 待报废状态。</li>
             <li>新条目会直接增加到当前来源里。</li>
             <li>消失条目会先显示名称、外编码、当前状态，再确认是否批量删除。</li>
@@ -391,6 +391,14 @@
             <li>操作记录表优先按 <code>记录ID</code> 对齐，没有时退回 <code>外编号 + 操作类型 + 操作时间</code>。</li>
           </ul>
         </div>
+      </div>
+      <div class="card" style="margin-top:14px;">
+        <h3>Excel 导入说明</h3>
+        <ul>
+          <li>mac 版当前支持直接导入 <code>.xlsx</code> 资产表，不需要先手动转换成 CSV。</li>
+          <li>如果表格首个工作表不是资产数据，建议先整理到第一个工作表后再导入。</li>
+          <li>导入结果仍按现有字段映射规则写入资产、来源和后续同步链路。</li>
+        </ul>
       </div>
       <div class="card" style="margin-top:14px;">
         <h3>文件菜单</h3>
