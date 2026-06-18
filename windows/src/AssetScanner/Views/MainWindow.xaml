@@ -1,0 +1,718 @@
+<Window x:Class="AssetScanner.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:views="clr-namespace:AssetScanner.Views;assembly=AssetScanner.Lib"
+        mc:Ignorable="d"
+        Title="AssetManager - 资产管理工具"
+        Width="1180" Height="760"
+        MinWidth="900" MinHeight="580"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource PageBrush}"
+        FontFamily="Segoe UI Variable, Segoe UI">
+
+    <Window.Resources>
+        <views:AssetStatusDisplayConverter x:Key="StatusDisplay"/>
+        <views:OperationTypeDisplayConverter x:Key="OperationDisplay"/>
+        <views:AssetStatusBrushConverter x:Key="StatusBrush"/>
+        <views:AssetDetailSummaryConverter x:Key="AssetDetailSummary"/>
+
+        <SolidColorBrush x:Key="SurfaceBrush" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="PageBrush" Color="#F6F8FC"/>
+        <SolidColorBrush x:Key="PrimaryBrush" Color="#2563EB"/>
+        <SolidColorBrush x:Key="PrimaryHoverBrush" Color="#1D4ED8"/>
+        <SolidColorBrush x:Key="PrimarySoftBrush" Color="#EFF6FF"/>
+        <SolidColorBrush x:Key="BorderBrushSoft" Color="#E5EAF3"/>
+        <SolidColorBrush x:Key="TextBrush" Color="#172033"/>
+        <SolidColorBrush x:Key="MutedTextBrush" Color="#667085"/>
+        <SolidColorBrush x:Key="ButtonHoverBrush" Color="#F8FAFF"/>
+        <SolidColorBrush x:Key="ButtonPressedBrush" Color="#EEF4FF"/>
+        <SolidColorBrush x:Key="InputDisabledBrush" Color="#F3F5F8"/>
+        <SolidColorBrush x:Key="GridHeaderBrush" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="GridLineBrush" Color="#EEF2F7"/>
+        <SolidColorBrush x:Key="GridAlternateBrush" Color="#FAFBFE"/>
+        <SolidColorBrush x:Key="GridHoverBrush" Color="#F4F8FF"/>
+        <SolidColorBrush x:Key="GridSelectedBrush" Color="#EAF1FF"/>
+        <SolidColorBrush x:Key="StatusPillBrush" Color="#F1F5F9"/>
+        <SolidColorBrush x:Key="GridForegroundBrush" Color="#172033"/>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="TextOptions.TextFormattingMode" Value="Display"/>
+        </Style>
+
+        <Style x:Key="ToolbarButton" TargetType="Button">
+            <Setter Property="Margin" Value="6,0,0,0"/>
+            <Setter Property="Padding" Value="14,8"/>
+            <Setter Property="MinWidth" Value="76"/>
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushSoft}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource ButtonHoverBrush}"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource PrimarySoftBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Foreground" Value="#A0AEC0"/>
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource InputDisabledBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PlainCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushSoft}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="18" ShadowDepth="1" Opacity="0.08" Color="#1B2A41"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="MetricValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="26"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+        </Style>
+
+        <Style x:Key="MetricLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4,0,0"/>
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushSoft}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource PrimaryBrush}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border x:Name="Root"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource PrimarySoftBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource InputDisabledBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="ComboBox">
+            <Setter Property="MinHeight" Value="34"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrushSoft}"/>
+            <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+        </Style>
+
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style TargetType="TabItem">
+            <Setter Property="Padding" Value="16,9"/>
+            <Setter Property="Margin" Value="0,0,6,0"/>
+            <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Root"
+                                Background="Transparent"
+                                BorderThickness="1"
+                                BorderBrush="Transparent"
+                                CornerRadius="8">
+                            <ContentPresenter ContentSource="Header"
+                                              Margin="{TemplateBinding Padding}"
+                                              HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource ButtonPressedBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{DynamicResource SurfaceBrush}"/>
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{DynamicResource BorderBrushSoft}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="DataGrid">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{DynamicResource GridForegroundBrush}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource GridLineBrush}"/>
+            <Setter Property="VerticalGridLinesBrush" Value="Transparent"/>
+            <Setter Property="RowBackground" Value="Transparent"/>
+            <Setter Property="AlternatingRowBackground" Value="Transparent"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="CanUserResizeRows" Value="False"/>
+            <Setter Property="ColumnHeaderStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridColumnHeader">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
+                        <Setter Property="FontSize" Value="12"/>
+                        <Setter Property="Padding" Value="14,12,14,10"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="RowStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridRow">
+                        <Setter Property="Background" Value="Transparent"/>
+                        <Setter Property="BorderBrush" Value="Transparent"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="SnapsToDevicePixels" Value="True"/>
+                        <Setter Property="Margin" Value="8,3"/>
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource GridHoverBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="{DynamicResource GridSelectedBrush}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource TextBrush}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="CellStyle">
+                <Setter.Value>
+                    <Style TargetType="DataGridCell">
+                        <Setter Property="Padding" Value="14,0"/>
+                        <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="Foreground" Value="{DynamicResource GridForegroundBrush}"/>
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DataGridCell">
+                                    <Border Background="{TemplateBinding Background}"
+                                            Padding="{TemplateBinding Padding}"
+                                            SnapsToDevicePixels="True">
+                                        <ContentPresenter VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="Transparent"/>
+                                <Setter Property="Foreground" Value="{DynamicResource GridForegroundBrush}"/>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceBrush}" BorderBrush="{DynamicResource BorderBrushSoft}" BorderThickness="0,0,0,1" Padding="18,14">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Width="32" Height="32" CornerRadius="8" Background="{DynamicResource PrimaryBrush}" Margin="0,0,10,0">
+                        <TextBlock Text="A" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="AssetManager" FontSize="22" FontWeight="SemiBold" Foreground="{DynamicResource TextBrush}"/>
+                    <TextBlock Text="资产管理工具" Margin="10,5,0,0" Foreground="{DynamicResource MutedTextBrush}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Padding="12,7" CornerRadius="8" Background="{DynamicResource PrimarySoftBrush}" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="同步状态：" Foreground="{DynamicResource MutedTextBrush}"/>
+                            <TextBlock Text="{Binding SyncStatus}" FontWeight="SemiBold" Foreground="{DynamicResource PrimaryBrush}"/>
+                        </StackPanel>
+                    </Border>
+                    <Button Content="导入 Excel / CSV" Command="{Binding ImportCommand}" Style="{StaticResource ToolbarButton}"/>
+                    <Button Content="导出资产" Command="{Binding ExportAssetsCommand}" Style="{StaticResource ToolbarButton}"/>
+                    <Button Content="导出记录" Command="{Binding ExportRecordsCommand}" Style="{StaticResource ToolbarButton}"/>
+                    <Button Content="保存配置" Command="{Binding SaveConfigurationCommand}" Style="{StaticResource ToolbarButton}"/>
+                    <Button Content="读取配置" Command="{Binding LoadConfigurationCommand}" Style="{StaticResource ToolbarButton}"/>
+                    <Button Content="帮助" Click="OpenHelp_Click" Style="{StaticResource ToolbarButton}"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <StatusBar DockPanel.Dock="Bottom"
+                   Background="{DynamicResource SurfaceBrush}"
+                   Foreground="{DynamicResource MutedTextBrush}"
+                   BorderBrush="{DynamicResource BorderBrushSoft}"
+                   BorderThickness="0,1,0,0"
+                   Padding="10,4">
+            <StatusBarItem Content="{Binding AssetCountText}"/>
+            <Separator/>
+            <StatusBarItem Content="{Binding SourceCountText}"/>
+            <Separator/>
+            <StatusBarItem Content="{Binding RecordCountText}"/>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="#DC2626"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <TabControl Margin="18" Background="Transparent">
+            <TabItem Header="资产列表">
+                <Grid Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Style="{StaticResource PlainCard}" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="260"/>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBox Grid.Column="0" Height="32" Padding="8,5"
+                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="搜索外编号、名称、型号、品牌、位置"/>
+
+                            <ComboBox x:Name="StatusFilterCombo"
+                                      Grid.Column="1" Height="32" Margin="10,0,0,0"
+                                      SelectionChanged="StatusFilterCombo_SelectionChanged"
+                                      SelectedIndex="0">
+                                <ComboBoxItem Content="全部"/>
+                                <ComboBoxItem Content="在库"/>
+                                <ComboBoxItem Content="已出库"/>
+                                <ComboBoxItem Content="送修"/>
+                                <ComboBoxItem Content="待报废"/>
+                            </ComboBox>
+
+                            <TextBlock x:Name="SelectedAssetsCountText"
+                                       Grid.Column="2"
+                                       Text="已选 0"
+                                       Foreground="{DynamicResource MutedTextBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="14,0,0,0"/>
+
+                            <StackPanel Grid.Column="4" Orientation="Horizontal">
+                                <Button Content="添加" Click="AddAsset_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="归还" Click="CheckInSelected_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="出库" Click="CheckOutSelected_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="送修" Click="RepairSelected_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="待报废" Click="ScrapSelected_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="一键全部出库" Click="CheckOutAll_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="删除" Click="DeleteSelected_Click" Style="{StaticResource ToolbarButton}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource PlainCard}" Padding="0">
+                        <DataGrid x:Name="AssetGrid"
+                                  ItemsSource="{Binding FilteredAssets}"
+                                  SelectedItem="{Binding SelectedAsset, Mode=TwoWay}"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  SelectionMode="Extended"
+                                  SelectionChanged="AssetGrid_SelectionChanged"
+                                  MouseDoubleClick="AssetGrid_MouseDoubleClick"
+                                  RowHeight="64">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="查看详情" Click="AssetDetails_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="归还" Click="CheckInSelected_Click"/>
+                                    <MenuItem Header="出库" Click="CheckOutSelected_Click"/>
+                                    <MenuItem Header="送修" Click="RepairSelected_Click"/>
+                                    <MenuItem Header="待报废" Click="ScrapSelected_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="删除设备" Click="DeleteSelected_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="资产" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                    <ColumnDefinition Width="*"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Padding="9,4"
+                                                        CornerRadius="8"
+                                                        Background="{DynamicResource StatusPillBrush}"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Center"
+                                                        Margin="0,0,12,0">
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <Ellipse Width="7" Height="7"
+                                                                 Fill="{Binding Status, Converter={StaticResource StatusBrush}}"
+                                                                 VerticalAlignment="Center"
+                                                                 Margin="0,0,5,0"/>
+                                                        <TextBlock Text="{Binding Status, Converter={StaticResource StatusDisplay}}"
+                                                                   Foreground="{Binding Status, Converter={StaticResource StatusBrush}}"
+                                                                   FontSize="12"
+                                                                   FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Border>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding AssetName}" FontSize="14" FontWeight="SemiBold"/>
+                                                    <TextBlock Text="{Binding Converter={StaticResource AssetDetailSummary}}"
+                                                               Foreground="{DynamicResource MutedTextBrush}"
+                                                               FontSize="12"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="存放位置" Binding="{Binding Location}" Width="170"/>
+                                <DataGridTextColumn Header="最后更新" Binding="{Binding LastUpdated, StringFormat=yyyy-MM-dd HH:mm}" Width="155"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="资产管理">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                              HorizontalScrollBarVisibility="Disabled"
+                              CanContentScroll="True"
+                              Margin="0,14,0,0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                    <Border Style="{StaticResource PlainCard}" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Sources.Count}" Style="{StaticResource MetricValue}" Foreground="#2563EB"/>
+                                <TextBlock Text="文件来源" Style="{StaticResource MetricLabel}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{Binding Assets.Count}" Style="{StaticResource MetricValue}" Foreground="#059669"/>
+                                <TextBlock Text="资产总数" Style="{StaticResource MetricLabel}"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{Binding CheckedOutAssetCount}" Style="{StaticResource MetricValue}" Foreground="#EA580C"/>
+                                <TextBlock Text="出库数量" Style="{StaticResource MetricLabel}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource PlainCard}" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.3*"/>
+                                <ColumnDefinition Width="1.1*"/>
+                                <ColumnDefinition Width="1.1*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.ColumnSpan="3">
+                                <TextBlock Text="服务器连接" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding ServerStatus}" Foreground="{DynamicResource MutedTextBrush}" Margin="0,4,0,10"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Margin="0,0,10,0">
+                                <TextBlock Text="服务器地址" Foreground="{DynamicResource MutedTextBrush}"/>
+                                <TextBox Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}" Padding="8,5"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,10,0">
+                                <TextBlock Text="账号邮箱" Foreground="{DynamicResource MutedTextBrush}"/>
+                                <TextBox Text="{Binding ServerEmail, UpdateSourceTrigger=PropertyChanged}" Padding="8,5"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,10,0">
+                                <TextBlock Text="密码" Foreground="{DynamicResource MutedTextBrush}"/>
+                                <PasswordBox Padding="8,5" PasswordChanged="ServerPasswordBox_PasswordChanged"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.RowSpan="2" Grid.Column="3" VerticalAlignment="Bottom">
+                                <CheckBox Content="允许内网自签证书"
+                                          IsChecked="{Binding ServerAllowInvalidCertificate, Mode=TwoWay}"
+                                          Margin="6,0,0,8"/>
+                                <WrapPanel>
+                                    <Button Content="登录" Command="{Binding ServerLoginCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                    <Button Content="拉取" Command="{Binding PullServerDataCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                    <Button Content="上传本机数据" Command="{Binding PushLocalSnapshotCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                    <Button Content="退出" Command="{Binding ServerLogoutCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                </WrapPanel>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="2" Style="{StaticResource PlainCard}" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="iCloud 文件同步" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBox Text="{Binding SyncPath, UpdateSourceTrigger=PropertyChanged}"
+                                         MinWidth="420"
+                                         Margin="0,6,0,0"
+                                         Padding="8,5"
+                                         ToolTip="可直接粘贴同步文件夹路径，也可点右侧按钮选择任意同步 JSON 文件"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                <Button Content="选择文件夹" Command="{Binding SelectSyncDirectoryCommand}" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="导入" Command="{Binding ImportFromSyncCommand}" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="导出" Command="{Binding ExportToSyncCommand}" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="双向同步" Command="{Binding BidirectionalSyncCommand}" Style="{StaticResource ToolbarButton}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="3" Style="{StaticResource PlainCard}" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.ColumnSpan="2">
+                                <TextBlock Text="飞书多维表格" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding FeishuStatus}" Foreground="{DynamicResource MutedTextBrush}" Margin="0,4,0,10"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="1" Margin="0,0,10,8">
+                                <TextBlock Text="App ID" Foreground="{DynamicResource MutedTextBrush}"/>
+                                <TextBox Text="{Binding FeishuAppId, UpdateSourceTrigger=PropertyChanged}" Padding="8,5"/>
+                            </StackPanel>
+                            <StackPanel Grid.Row="1" Grid.Column="1" Margin="0,0,10,8">
+                                <TextBlock Text="App Secret" Foreground="{DynamicResource MutedTextBrush}"/>
+                                <TextBox Text="{Binding FeishuAppSecret, UpdateSourceTrigger=PropertyChanged}" Padding="8,5"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Row="2" Margin="0,0,10,8">
+                                <TextBlock Text="资产表链接" Foreground="{DynamicResource MutedTextBrush}"/>
+                                <TextBox Text="{Binding FeishuAssetTableLink, UpdateSourceTrigger=PropertyChanged}" Padding="8,5"/>
+                            </StackPanel>
+                            <Button Grid.Row="2" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                    Content="解析资产表链接" Command="{Binding ParseFeishuAssetLinkCommand}" Style="{StaticResource ToolbarButton}" Margin="0,0,0,8"/>
+
+                            <StackPanel Grid.Row="3" Margin="0,0,10,0">
+                                <TextBlock Text="记录表链接" Foreground="{DynamicResource MutedTextBrush}"/>
+                                <TextBox Text="{Binding FeishuRecordTableLink, UpdateSourceTrigger=PropertyChanged}" Padding="8,5"/>
+                            </StackPanel>
+                            <Button Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                                    Content="解析记录表链接" Command="{Binding ParseFeishuRecordLinkCommand}" Style="{StaticResource ToolbarButton}"/>
+
+                            <StackPanel Grid.Column="2" Grid.RowSpan="4" Orientation="Vertical" VerticalAlignment="Bottom">
+                                <Button Content="保存配置" Command="{Binding SaveFeishuConfigCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                <Button Content="测试连接" Command="{Binding TestFeishuCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                <Button Content="同步到飞书" Command="{Binding SyncToFeishuCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                <Button Content="从飞书导入" Command="{Binding ImportFromFeishuCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,6"/>
+                                <Button Content="双向同步" Command="{Binding BidirectionalFeishuCommand}" Style="{StaticResource ToolbarButton}" Margin="6,0,0,0"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="4" Style="{StaticResource PlainCard}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel>
+                                <TextBlock Text="导入来源" FontSize="16" FontWeight="SemiBold"/>
+                                <TextBox Width="260" HorizontalAlignment="Left" Margin="0,10,0,10" Padding="8,5"
+                                         Text="{Binding SourceSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                         ToolTip="搜索文件来源"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Top">
+                                <Button Content="更新来源" Click="UpdateSource_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="删除来源" Command="{Binding DeleteSourceCommand}"
+                                        CommandParameter="{Binding SelectedSource}" Style="{StaticResource ToolbarButton}"/>
+                            </StackPanel>
+
+                            <DataGrid Grid.Row="1" Grid.ColumnSpan="2"
+                                      ItemsSource="{Binding FilteredSources}"
+                                      SelectedItem="{Binding SelectedSource, Mode=TwoWay}"
+                                      AutoGenerateColumns="False"
+                                      CanUserAddRows="False"
+                                      IsReadOnly="True"
+                                      MinHeight="220"
+                                      MaxHeight="420"
+                                      RowHeight="42"
+                                      Background="White"
+                                      BorderBrush="#E2E8F0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="文件名" Binding="{Binding FileName}" Width="*"/>
+                                    <DataGridTextColumn Header="导入时间" Binding="{Binding ImportDate, StringFormat=yyyy-MM-dd HH:mm}" Width="180"/>
+                                    <DataGridTextColumn Header="资产数量" Binding="{Binding AssetCount}" Width="110"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </Grid>
+                    </Border>
+                    </Grid>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="历史记录">
+                <Grid Margin="0,14,0,0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <Border Style="{StaticResource PlainCard}" Margin="0,0,0,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="260"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="{Binding RecordCountText}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                            <TextBox Grid.Column="1" Margin="18,0,0,0"
+                                     Text="{Binding RecordSearchText, UpdateSourceTrigger=PropertyChanged}"
+                                     ToolTip="搜索条码、名称、操作人、类型、备注"/>
+                            <StackPanel Grid.Column="3" Orientation="Horizontal">
+                                <Button Content="全选" Click="SelectAllRecords_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="同步选中" Click="SyncSelectedRecords_Click" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="同步 Outlook" Command="{Binding SyncOutlookCalendarCommand}" Style="{StaticResource ToolbarButton}"/>
+                                <Button Content="清空历史" Click="ClearRecords_Click" Style="{StaticResource ToolbarButton}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="1" Style="{StaticResource PlainCard}" Padding="0">
+                        <DataGrid x:Name="RecordGrid"
+                                  ItemsSource="{Binding FilteredRecords}"
+                                  SelectedItem="{Binding SelectedRecord, Mode=TwoWay}"
+                                  SelectionMode="Extended"
+                                  SelectionUnit="FullRow"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  IsReadOnly="True"
+                                  RowHeight="52"
+                                  PreviewMouseRightButtonDown="RecordGrid_PreviewMouseRightButtonDown">
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="编辑" Click="EditSelectedRecord_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="删除选中记录" Click="DeleteSelectedRecords_Click"/>
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="时间" Binding="{Binding Timestamp, StringFormat=yyyy-MM-dd HH:mm}" Width="150"/>
+                                <DataGridTextColumn Header="条码" Binding="{Binding AssetId}" Width="130"/>
+                                <DataGridTextColumn Header="资产名称" Binding="{Binding AssetName}" Width="180"/>
+                                <DataGridTextColumn Header="类型" Binding="{Binding Type, Converter={StaticResource OperationDisplay}}" Width="90"/>
+                                <DataGridTextColumn Header="操作人" Binding="{Binding Operator}" Width="110"/>
+                                <DataGridTextColumn Header="备注" Binding="{Binding Note}" Width="*"/>
+                                <DataGridTextColumn Header="预计归还" Binding="{Binding EstimatedReturnDate, StringFormat=yyyy-MM-dd}" Width="120"/>
+                                <DataGridCheckBoxColumn Header="Outlook" Binding="{Binding IsSyncedToReminders}" Width="90"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Border>
+                </Grid>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

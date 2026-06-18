@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <data name="app_title">
+    <value>AssetScanner - 资产管理工具</value>
+  </data>
+  <data name="tab_scan">
+    <value>扫码</value>
+  </data>
+  <data name="tab_assets">
+    <value>资产列表</value>
+  </data>
+  <data name="tab_management">
+    <value>资产管理</value>
+  </data>
+  <data name="tab_history">
+    <value>操作历史</value>
+  </data>
+  <data name="status_in_stock">
+    <value>在库</value>
+  </data>
+  <data name="status_checked_out">
+    <value>已出库</value>
+  </data>
+  <data name="status_maintenance">
+    <value>送修</value>
+  </data>
+  <data name="type_check_in">
+    <value>入库</value>
+  </data>
+  <data name="type_check_out">
+    <value>出库</value>
+  </data>
+  <data name="type_repair">
+    <value>送修</value>
+  </data>
+  <data name="error_title">
+    <value>错误</value>
+  </data>
+  <data name="confirm">
+    <value>确定</value>
+  </data>
+  <data name="error_import_failed">
+    <value>导入失败: {0}</value>
+  </data>
+  <data name="error_export_failed">
+    <value>导出失败: {0}</value>
+  </data>
+  <data name="asset_list_title">
+    <value>资产列表</value>
+  </data>
+  <data name="history_title">
+    <value>操作历史</value>
+  </data>
+  <data name="current_user">
+    <value>当前用户</value>
+  </data>
+  <data name="search_placeholder">
+    <value>搜索资产...</value>
+  </data>
+  <data name="import_button">
+    <value>导入</value>
+  </data>
+  <data name="export_button">
+    <value>导出</value>
+  </data>
+  <data name="check_in_button">
+    <value>入库</value>
+  </data>
+  <data name="check_out_button">
+    <value>出库</value>
+  </data>
+  <data name="repair_button">
+    <value>送修</value>
+  </data>
+  <data name="delete_button">
+    <value>删除</value>
+  </data>
+  <data name="col_id">
+    <value>外编号</value>
+  </data>
+  <data name="col_name">
+    <value>名称</value>
+  </data>
+  <data name="col_model">
+    <value>型号</value>
+  </data>
+  <data name="col_brand">
+    <value>品牌</value>
+  </data>
+  <data name="col_internal_code">
+    <value>内编号</value>
+  </data>
+  <data name="col_status">
+    <value>状态</value>
+  </data>
+  <data name="col_location">
+    <value>存放位置</value>
+  </data>
+  <data name="col_last_updated">
+    <value>最后更新</value>
+  </data>
+  <data name="col_time">
+    <value>时间</value>
+  </data>
+  <data name="col_asset_id">
+    <value>条码</value>
+  </data>
+  <data name="col_type">
+    <value>类型</value>
+  </data>
+  <data name="col_operator">
+    <value>操作人</value>
+  </data>
+  <data name="col_note">
+    <value>备注</value>
+  </data>
+  <data name="col_estimated_return">
+    <value>预计归还</value>
+  </data>
+</root>
